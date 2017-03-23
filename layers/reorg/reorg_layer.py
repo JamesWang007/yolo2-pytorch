@@ -1,10 +1,11 @@
 import torch
 from torch.autograd import Function
-from _ext import reorg_layer
+from ._ext import reorg_layer
 
 
 class ReorgFunction(Function):
     def __init__(self, stride=2):
+        super().__init__()
         self.stride = stride
 
     def forward(self, x):
@@ -42,7 +43,6 @@ class ReorgFunction(Function):
 class ReorgLayer(torch.nn.Module):
     def __init__(self, stride):
         super(ReorgLayer, self).__init__()
-
         self.stride = stride
 
     def forward(self, x):

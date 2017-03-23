@@ -102,7 +102,7 @@ def _process_batch(data):
     anchor_inds = np.argmax(anchor_ious, axis=0)
     for i, cell_ind in enumerate(cell_inds):
         if cell_ind >= hw or cell_ind < 0:
-            print cell_ind
+            print(cell_ind)
             continue
         a = anchor_inds[i]
 
@@ -244,7 +244,6 @@ class Darknet19(nn.Module):
         _box_mask = np.stack(tuple((row[3] for row in targets)))
         _iou_mask = np.stack(tuple((row[4] for row in targets)))
         _class_mask = np.stack(tuple((row[5] for row in targets)))
-
 
         return _boxes, _ious, _classes, _box_mask, _iou_mask, _class_mask
 
