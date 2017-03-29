@@ -1,14 +1,13 @@
 import os
-import cv2
-import torch
 import numpy as np
-from torch.multiprocessing import Pool
+import cv2
 
-from darknet import Darknet19
-import utils.yolo as yolo_utils
-import utils.network as net_utils
-from utils.timer import Timer
 import cfgs.config as cfg
+import utils.network as net_utils
+import utils.yolo as yolo_utils
+from darknet import Darknet19
+from plot_util import plot_feature_map
+from utils.timer import Timer
 
 
 def preprocess(filename):
@@ -18,11 +17,9 @@ def preprocess(filename):
 
 
 def main():
-
     trained_model = cfg.trained_model
     thresh = 0.5
-    # image_dir = '/home/cory/cedl/vid/videos/vid04'
-    image_dir = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
 
     net = Darknet19()
     net_utils.load_net(trained_model, net)
@@ -46,6 +43,15 @@ def main():
         t_det.tic()
         bbox_pred, iou_pred, prob_pred = net.forward(im_data)
         det_time = t_det.toc()
+
+        # conv5 feature map
+        conv5_feat = net.get_conv5_feature_map(im_data)
+        conv5_feat = conv5_feat.data.cpu().numpy()
+        print(conv5_feat.shape)
+        feature_map_all = plot_feature_map(conv5_feat)
+        cv2.imshow('feature_map', feature_map_all)
+        cv2.imwrite('output/feature_map/{:04d}.jpg'.format(i), feature_map_all * 255)
+
         # to numpy
         bbox_pred = bbox_pred.data.cpu().numpy()
         iou_pred = iou_pred.data.cpu().numpy()
@@ -59,12 +65,10 @@ def main():
 
         if im2show.shape[0] > 1100:
             im2show = cv2.resize(im2show, (int(1000. * float(im2show.shape[1]) / im2show.shape[0]), 1000))
-        cv2.imshow('test', im2show)
+        cv2.imshow('detection', im2show)
+        cv2.imwrite('output/detection/{:04d}.jpg'.format(i), im2show)
 
         total_time = t_total.toc()
-        # wait_time = max(int(60 - total_time * 1000), 1)
-        cv2.waitKey(1)
-
         format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms)'
         print(format_str % (
             i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000))
@@ -72,6 +76,13 @@ def main():
         t_det.clear()
         t_total.clear()
 
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            break
+
+        if i == 0:
+            # wait user press any key to start
+            cv2.waitKey(0)
 
 if __name__ == '__main__':
     main()
