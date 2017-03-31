@@ -226,8 +226,88 @@ class Darknet19(nn.Module):
 
         wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
         bbox_pred = torch.cat([xy_pred, wh_pred], 3)
+        return bbox_pred, iou_pred, prob_pred
+
+    def feed_feature(self, conv5, gt_boxes=None, gt_classes=None, dontcare=None):
+        # for detection
+        # bsize, c, h, w -> bsize, h, w, c -> bsize, h x w, num_anchors, 5+num_classes
+        bsize, _, h, w = conv5.size()
+        # assert bsize == 1, 'detection only support one image per batch'
+        conv5_reshaped = conv5.permute(0, 2, 3, 1).contiguous().view(bsize, -1, cfg.num_anchors, cfg.num_classes + 5)
+
+        # tx, ty, tw, th, to -> sig(tx), sig(ty), exp(tw), exp(th), sig(to)
+        xy_pred = F.sigmoid(conv5_reshaped[:, :, :, 0:2])
+        # wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
+        wh_pred = conv5_reshaped[:, :, :, 2:4]
+        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
+
+        iou_pred = F.sigmoid(conv5_reshaped[:, :, :, 4:5])
+
+        score_pred = conv5_reshaped[:, :, :, 5:].contiguous()
+        prob_pred = F.softmax(score_pred.view(-1, score_pred.size()[-1])).view_as(score_pred)
+
+        # for training
+        if self.training:
+            bbox_pred_np = bbox_pred.data.cpu().numpy()
+            _boxes, _ious, _classes, _box_mask, _iou_mask, _class_mask = self._build_target(
+                bbox_pred_np, gt_boxes, gt_classes, dontcare)
+
+            _boxes = net_utils.np_to_variable(_boxes)
+            _ious = net_utils.np_to_variable(_ious)
+            _classes = net_utils.np_to_variable(_classes)
+            box_mask = net_utils.np_to_variable(_box_mask, dtype=torch.FloatTensor)
+            iou_mask = net_utils.np_to_variable(_iou_mask, dtype=torch.FloatTensor)
+            class_mask = net_utils.np_to_variable(_class_mask, dtype=torch.FloatTensor)
+
+            num_boxes = sum((len(boxes) for boxes in gt_boxes))
+
+            # _boxes[:, :, :, 2:4] = torch.log(_boxes[:, :, :, 2:4])
+            box_mask = box_mask.expand_as(_boxes)
+            # self.bbox_loss = torch.sum(torch.pow(_boxes - bbox_pred, 2) * box_mask) / num_boxes
+            self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred * box_mask, _boxes * box_mask) / num_boxes
+
+            # self.iou_loss = torch.sum(torch.pow(_ious - iou_pred, 2) * iou_mask) / num_boxes
+            self.iou_loss = nn.MSELoss(size_average=False)(iou_pred * iou_mask, _ious * iou_mask) / num_boxes
+
+            class_mask = class_mask.expand_as(prob_pred)
+            # self.cls_loss = torch.sum(torch.pow(_classes - prob_pred, 2) * class_mask) / num_boxes
+            self.cls_loss = nn.MSELoss(size_average=False)(prob_pred * class_mask, _classes * class_mask) / num_boxes
+
+        wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
+        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
 
         return bbox_pred, iou_pred, prob_pred
+
+    def get_feature_map(self, im_data, layer='conv5'):
+        conv1s = self.conv1s(im_data)
+        if layer == 'conv1s':
+            return conv1s
+
+        conv2 = self.conv2(conv1s)
+        if layer == 'conv2':
+            return conv2
+
+        conv3 = self.conv3(conv2)
+        if layer == 'conv3':
+            return conv3
+
+        conv1s_reorg = self.reorg(conv1s)
+        if layer == 'conv1s_reorg':
+            return conv1s_reorg
+
+        cat_1_3 = torch.cat([conv1s_reorg, conv3], 1)
+        if layer == 'cat_1_3':
+            return cat_1_3
+
+        conv4 = self.conv4(cat_1_3)
+        if layer == 'conv4':
+            return conv4
+
+        conv5 = self.conv5(conv4)   # batch_size, out_channels, h, w
+        if layer == 'conv5':
+            return conv5
+
+        return None
 
     def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, dontcare):
         """

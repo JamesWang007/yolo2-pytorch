@@ -195,7 +195,7 @@ def get_bbox_targets(images, gt_boxes, cls_inds, dontcares, cfg):
 
 
 def draw_detection(im, bboxes, scores, cls_inds, cfg):
-    # draw image
+    # draw imagelabel_names
     colors = cfg.colors
     labels = cfg.label_names
 
