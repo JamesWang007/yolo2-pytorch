@@ -336,7 +336,7 @@ class Darknet19(nn.Module):
         keys = own_dict.keys()
 
         for i, start in enumerate(range(0, len(keys), 5)):
-            if num_conv is not None and i>= num_conv:
+            if num_conv is not None and i >= num_conv:
                 break
             end = min(start+5, len(keys))
             for key in keys[start:end]:

@@ -16,6 +16,8 @@ def mkdir(path, max_depth=3):
 ############################
 inp_size = np.array([1248, 352], dtype=np.int)   # w, h
 # inp_size = np.array([416, 416], dtype=np.int)
+# inp_size = np.array([512, 288], dtype=np.int)
+# inp_size = np.array([1280, 736], dtype=np.int)
 out_size = inp_size / 32
 
 

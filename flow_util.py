@@ -58,9 +58,9 @@ def dis_flow(img_path1, img_path2):
         return data2D
 
 
-def get_flow_for_filter(flow):
-    filter_map_height = 11
-    filter_map_width = 39
+def get_flow_for_filter(flow, feat_map_size):
+    filter_map_height = feat_map_size[0]
+    filter_map_width = feat_map_size[1]
     flow_ratio_y = flow.shape[0] / filter_map_height
     flow_ratio_x = flow.shape[1] / filter_map_width
     flow_small = np.asarray([cv2.resize(src=flow[:, :, 0] / flow_ratio_y,
