@@ -43,7 +43,9 @@ class ImageDataset(object):
         i = 0
         while i < self.batch_size:
             try:
-                images, gt_boxes, classes, dontcare, origin_im = self.gen.next()
+                if self.gen is None:
+                    raise AttributeError
+                images, gt_boxes, classes, dontcare, origin_im = next(self.gen)
                 batch['images'].append(images)
                 batch['gt_boxes'].append(gt_boxes)
                 batch['gt_classes'].append(classes)

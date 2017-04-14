@@ -24,11 +24,11 @@ imdb = VOCDataset(cfg.imdb_train, cfg.DATA_DIR, cfg.train_batch_size,
 print('load data succ...')
 
 net = Darknet19()
-# net_utils.load_net(cfg.trained_model, net)
-# pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_63.h5')
+net_utils.load_net(cfg.trained_model, net)
+# pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_50.h5')
 # pretrained_model = cfg.trained_model
 # net_utils.load_net(pretrained_model, net)
-net.load_from_npz(cfg.pretrained_model, num_conv=18)
+# net.load_from_npz(cfg.pretrained_model, num_conv=18)
 net.cuda()
 net.train()
 print('load net succ...')
@@ -36,7 +36,8 @@ print('load net succ...')
 # optimizer
 start_epoch = 0
 lr = cfg.init_learning_rate
-optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
+# optimizer = torch.optim.SGD([{'params': net.conv5.parameters()}], lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
+optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}])
 
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None

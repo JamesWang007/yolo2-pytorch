@@ -104,7 +104,7 @@ def main():
 
     key_frame_path = ''
     detection_period = 5
-    use_flow = True
+    use_flow = False
 
     kitti_filename = 'yolo_flow_kitti_det.txt'
     try:

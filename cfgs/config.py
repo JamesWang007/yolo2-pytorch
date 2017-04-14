@@ -59,4 +59,4 @@ rand_seed = 1024
 use_tensorboard = True
 
 log_interval = 50
-disp_interval = 10
+disp_interval = 50

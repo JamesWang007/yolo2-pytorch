@@ -2,7 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
-import cPickle
+import pickle
 
 from darknet import Darknet19
 import utils.yolo as yolo_utils
@@ -22,8 +22,6 @@ def preprocess(fname):
 # hyper-parameters
 # ------------
 imdb_name = cfg.imdb_test
-trained_model = cfg.trained_model
-# trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp3_158.h5')
 output_dir = cfg.test_output_dir
 
 max_per_image = 300
@@ -85,8 +83,7 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
         nms_time = _t['misc'].toc()
 
         if i % 20 == 0:
-            print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s' \
-                .format(i + 1, num_images, detect_time, nms_time))
+            print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s'.format(i + 1, num_images, detect_time, nms_time))
             _t['im_detect'].clear()
             _t['misc'].clear()
 
@@ -98,7 +95,7 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
             cv2.waitKey(0)
 
     with open(det_file, 'wb') as f:
-        cPickle.dump(all_boxes, f, cPickle.HIGHEST_PROTOCOL)
+        pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
 
     print('Evaluating detections')
     imdb.evaluate_detections(all_boxes, output_dir)
@@ -107,10 +104,28 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
 if __name__ == '__main__':
     # data loader
     imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
-                      yolo_utils.preprocess_test, processes=2, shuffle=False, dst_size=cfg.inp_size)
+                      yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
 
     net = Darknet19()
-    net_utils.load_net(cfg.trained_model, net)
+    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_50.h5')
+    # 0.7186  default (yolo-voc.weights.h5)
+    # 0.6040  default + FT conv5  epoch 1 trained with VOC12
+    # 0.6335  default + FT conv5  epoch 1 trained with VOC07
+
+    # init_learning_rate  = 0.001
+    # 0.3669  default + FT conv5  epoch 20 trained with VOC07
+    # 0.3887  default + FT conv5  epoch 50 trained with VOC07
+    # 0.4342  default + FT conv5  epoch 80 trained with VOC07
+    # 0.4506  default + FT conv5  epoch 125 trained with VOC07
+
+    # init_learning_rate  = 0.0001
+    # 0.6400  default + FT conv5  epoch 1 trained with VOC07
+    # 0.6382  default + FT conv5  epoch 5 trained with VOC07
+    # 0.6449  default + FT conv5  epoch 20 trained with VOC07
+    # 0.6376  default + FT conv5  epoch 70 trained with VOC07
+
+    net_utils.load_net(trained_model, net)
+    print(trained_model)
 
     net.cuda()
     net.eval()

@@ -333,7 +333,7 @@ class Darknet19(nn.Module):
                     'bn.running_mean': 'moving_mean', 'bn.running_var': 'moving_variance'}
         params = np.load(fname)
         own_dict = self.state_dict()
-        keys = own_dict.keys()
+        keys = list(own_dict.keys())
 
         for i, start in enumerate(range(0, len(keys), 5)):
             if num_conv is not None and i >= num_conv:
@@ -351,6 +351,6 @@ class Darknet19(nn.Module):
 
 if __name__ == '__main__':
     net = Darknet19()
-    # net.load_from_npz('models/yolo-voc.weights.npz')
-    net.load_from_npz('models/darknet19.weights.npz', num_conv=18)
+    net.load_from_npz('models/yolo-voc.weights.npz')
+    # net.load_from_npz('models/darknet19.weights.npz', num_conv=18)
 
