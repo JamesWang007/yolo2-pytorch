@@ -25,7 +25,7 @@ imdb_name = cfg.imdb_test
 output_dir = cfg.test_output_dir
 
 max_per_image = 300
-thresh = 0.01
+thresh = 0.001
 vis = False
 # ------------
 
@@ -43,14 +43,15 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
     _t = {'im_detect': Timer(), 'misc': Timer()}
     det_file = os.path.join(output_dir, 'detections.pkl')
 
-    for i in range(num_images):
+    for i in range(num_images//100):
 
         batch = imdb.next_batch()
         ori_im = batch['origin_im'][0]
-        im_data = net_utils.np_to_variable(batch['images'], is_cuda=True, volatile=True).permute(0, 3, 1, 2)
+        im_data = net_utils.np_to_variable(batch['images'], is_cuda=True, volatile=True)
+        im_data = im_data.permute(0, 3, 1, 2)
 
         _t['im_detect'].tic()
-        bbox_pred, iou_pred, prob_pred = net(im_data)
+        bbox_pred, iou_pred, prob_pred = net.forward(im_data)
 
         # to numpy
         bbox_pred = bbox_pred.data.cpu().numpy()
@@ -59,7 +60,6 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
 
         bboxes, scores, cls_inds = yolo_utils.postprocess(bbox_pred, iou_pred, prob_pred, ori_im.shape, cfg, thresh)
         detect_time = _t['im_detect'].toc()
-
         _t['misc'].tic()
 
         for j in range(imdb.num_classes):
@@ -104,25 +104,39 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
 if __name__ == '__main__':
     # data loader
     imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
-                      yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
+                      yolo_utils.preprocess_test, processes=2, shuffle=False, dst_size=cfg.inp_size)
 
     net = Darknet19()
-    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_50.h5')
+    use_default = False
+    if use_default:
+        trained_model = cfg.trained_model
+    else:
+        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_20.h5')
+
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6040  default + FT conv5  epoch 1 trained with VOC12
     # 0.6335  default + FT conv5  epoch 1 trained with VOC07
 
-    # init_learning_rate  = 0.001
+    # init_learning_rate  = 1e-3
     # 0.3669  default + FT conv5  epoch 20 trained with VOC07
     # 0.3887  default + FT conv5  epoch 50 trained with VOC07
     # 0.4342  default + FT conv5  epoch 80 trained with VOC07
     # 0.4506  default + FT conv5  epoch 125 trained with VOC07
 
-    # init_learning_rate  = 0.0001
+    # init_learning_rate  = 1e-4
     # 0.6400  default + FT conv5  epoch 1 trained with VOC07
     # 0.6382  default + FT conv5  epoch 5 trained with VOC07
     # 0.6449  default + FT conv5  epoch 20 trained with VOC07
     # 0.6376  default + FT conv5  epoch 70 trained with VOC07
+
+    # Adam, lr = 1e-3
+    # 0.5790  default + FT conv5  epoch 20 trained with VOC07
+    # 0.5633  default + FT conv5  epoch 50 trained with VOC07
+
+    # Adam, lr = 1e-5
+    # 0.6370  default + FT conv5  epoch 20 trained with VOC07
+    # 0.6473  default + FT conv5  epoch 50 trained with VOC07
+    # 0.6542  default + FT conv5  epoch 110 trained with VOC07
 
     net_utils.load_net(trained_model, net)
     print(trained_model)

@@ -1,26 +1,24 @@
 import os
-import cv2
+
 import torch
-import numpy as np
-from torch.multiprocessing import Pool
 
-from darknet import Darknet19
-
-from datasets.pascal_voc import VOCDataset
-import utils.yolo as yolo_utils
-import utils.network as net_utils
-from utils.timer import Timer
 import cfgs.config as cfg
+import utils.network as net_utils
+from darknet import Darknet19
+from datasets.kitti import KittiDataset
+from utils.timer import Timer
 
 try:
     from pycrayon import CrayonClient
 except ImportError:
     CrayonClient = None
 
-
 # data loader
-imdb = VOCDataset(cfg.imdb_train, cfg.DATA_DIR, cfg.train_batch_size,
-                  yolo_utils.preprocess_train, processes=2, shuffle=True, dst_size=cfg.inp_size)
+batch_size = 16
+imdb = KittiDataset('kitti', '/home/cory/KITTI_Dataset',
+                    '/home/cory/KITTI_Dataset/kitti_tracking_images.txt',
+                    '/home/cory/KITTI_Dataset/kitti_tracking_gt.txt',
+                    batch_size, KittiDataset.preprocess_train, processes=2, shuffle=True, dst_size=None)
 print('load data succ...')
 
 net = Darknet19()
@@ -41,11 +39,11 @@ print('load net succ...')
 start_epoch = 0
 cfg.init_learning_rate = 1e-5
 lr = cfg.init_learning_rate
-# optimizer = torch.optim.SGD([{'params': net.conv5.parameters()}], lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
 optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}], lr=lr)
 
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None
+
 # use_tensorboard = False
 remove_all_log = True
 if use_tensorboard:
@@ -78,7 +76,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
 
     # forward
     im_data = net_utils.np_to_variable(im, is_cuda=True, volatile=False).permute(0, 3, 1, 2)
-    net.forward(im_data, gt_boxes, gt_classes, dontcare)
+    x = net.forward(im_data, gt_boxes, gt_classes, dontcare)
 
     # backward
     loss = net.loss
@@ -121,6 +119,5 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
         save_name = os.path.join(cfg.train_output_dir, '{}_{}.h5'.format(cfg.exp_name, imdb.epoch))
         net_utils.save_net(save_name, net)
         print('save model: {}'.format(save_name))
-
 
 imdb.close()

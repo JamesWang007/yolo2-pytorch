@@ -313,7 +313,6 @@ class Darknet19(nn.Module):
         """
         :param bbox_pred: shape: (bsize, h x w, num_anchors, 4) : (sig(tx), sig(ty), exp(tw), exp(th))
         """
-
         bsize = bbox_pred_np.shape[0]
 
         targets = self.pool.map(_process_batch, ((bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b]) for b in range(bsize)))

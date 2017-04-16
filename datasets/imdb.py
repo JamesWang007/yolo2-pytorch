@@ -14,7 +14,7 @@ def mkdir(path, max_depth=3):
 
 
 class ImageDataset(object):
-    def __init__(self, name, datadir, batch_size, im_processor, processes=3, shuffle=True, dst_size=None):
+    def __init__(self, name, datadir, batch_size, im_processor, processes=2, shuffle=True, dst_size=None):
         self._name = name
         self._data_dir = datadir
         self._batch_size = batch_size

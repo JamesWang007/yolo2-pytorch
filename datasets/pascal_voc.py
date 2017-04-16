@@ -15,7 +15,7 @@ from datasets.voc_eval import voc_eval
 
 
 class VOCDataset(ImageDataset):
-    def __init__(self, imdb_name, datadir, batch_size, im_processor, processes=3, shuffle=True, dst_size=None):
+    def __init__(self, imdb_name, datadir, batch_size, im_processor, processes=2, shuffle=True, dst_size=None):
         super(VOCDataset, self).__init__(imdb_name, datadir, batch_size, im_processor, processes, shuffle, dst_size)
         meta = imdb_name.split('_')
         self._year = meta[1]

@@ -127,7 +127,6 @@ def postprocess(bbox_pred, iou_pred, prob_pred, im_shape, cfg, thresh=0.05):
     bbox_pred = bbox_pred[keep]
     scores = scores[keep]
     cls_inds = cls_inds[keep]
-    # print scores.shape
 
     # NMS
     keep = np.zeros(len(bbox_pred), dtype=np.int)
