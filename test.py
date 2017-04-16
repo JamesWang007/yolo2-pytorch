@@ -111,7 +111,7 @@ if __name__ == '__main__':
     if use_default:
         trained_model = cfg.trained_model
     else:
-        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
+        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_1.h5')
 
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6040  default + FT conv5  epoch 1 trained with VOC12

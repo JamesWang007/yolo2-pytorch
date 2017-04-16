@@ -5,6 +5,7 @@ import cv2
 
 from datasets.imdb import ImageDataset
 from datasets.voc_eval import voc_eval
+from utils.im_transform import imcv2_recolor
 from cfgs import config
 from cfgs import config_voc
 
@@ -129,6 +130,7 @@ class KittiDataset(ImageDataset):
             boxes[:, 0::2] *= float(w) / im.shape[1]
             boxes[:, 1::2] *= float(h) / im.shape[0]
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+        im = imcv2_recolor(im)
         # im = imcv2_recolor(im)
         # im /= 255.
 

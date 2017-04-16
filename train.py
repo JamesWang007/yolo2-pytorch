@@ -25,16 +25,20 @@ print('load data succ...')
 
 net = Darknet19()
 
-use_model = 'conv'
-if use_model == 'default':
-    net_utils.load_net(cfg.trained_model, net)
-elif use_model == 'exp':
-    pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_21.h5')
-    net_utils.load_net(pretrained_model, net)
-elif use_model == 'conv':
-    net.load_from_npz(cfg.pretrained_model, num_conv=18)
+use_model_type = 'default'
+use_model = ''
+if use_model_type == 'default':
+    use_model = cfg.trained_model
+    net_utils.load_net(use_model, net)
+elif use_model_type == 'exp':
+    use_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
+    net_utils.load_net(use_model, net)
+elif use_model_type == 'conv':
+    use_model = cfg.pretrained_model
+    net.load_from_npz(use_model, num_conv=18)
 else:
     raise AssertionError
+
 
 net.cuda()
 net.train()
@@ -45,7 +49,18 @@ start_epoch = 0
 cfg.init_learning_rate = 1e-10
 lr = cfg.init_learning_rate
 # optimizer = torch.optim.SGD([{'params': net.conv5.parameters()}], lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
-optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}], lr=lr)
+optimizer = torch.optim.Adam([{'params': net.conv3.parameters()},
+                              {'params': net.conv4.parameters()},
+                              {'params': net.conv5.parameters()}], lr=lr)
+
+# show training parameters
+print('-------------------------------')
+print('use_model', use_model)
+print('use_model_type', use_model_type)
+print('network size', cfg.inp_size)
+print('batch_size',  cfg.train_batch_size)
+print('lr', lr)
+print('-------------------------------')
 
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None

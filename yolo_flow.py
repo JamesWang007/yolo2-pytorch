@@ -76,7 +76,7 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
+    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_1.h5')
     thresh = 0.1
     use_kitti = True
     image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
