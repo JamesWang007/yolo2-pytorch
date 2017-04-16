@@ -2,7 +2,7 @@ import os
 
 import torch
 
-import cfgs.config as cfg
+import cfgs.config_ft as cfg
 import utils.network as net_utils
 from darknet import Darknet19
 from datasets.kitti import KittiDataset
@@ -14,22 +14,25 @@ except ImportError:
     CrayonClient = None
 
 # data loader
-batch_size = 16
+batch_size = 32
 imdb = KittiDataset('kitti', '/home/cory/KITTI_Dataset',
                     '/home/cory/KITTI_Dataset/kitti_tracking_images.txt',
                     '/home/cory/KITTI_Dataset/kitti_tracking_gt.txt',
                     batch_size, KittiDataset.preprocess_train, processes=2, shuffle=True, dst_size=None)
 print('load data succ...')
-
+print(cfg.inp_size)
 net = Darknet19()
 
-use_default = True
-if use_default:
+use_model = 'default'
+if use_model == 'default':
     net_utils.load_net(cfg.trained_model, net)
-else:
-    pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_21.h5')
+elif use_model == 'exp':
+    pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
     net_utils.load_net(pretrained_model, net)
-    # net.load_from_npz(cfg.pretrained_model, num_conv=18)
+elif use_model == 'conv':
+    net.load_from_npz(cfg.pretrained_model, num_conv=18)
+else:
+    raise AssertionError
 
 net.cuda()
 net.train()
@@ -39,7 +42,9 @@ print('load net succ...')
 start_epoch = 0
 cfg.init_learning_rate = 1e-5
 lr = cfg.init_learning_rate
-optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}], lr=lr)
+optimizer = torch.optim.Adam([{'params': net.conv3.parameters()},
+                              {'params': net.conv4.parameters()},
+                              {'params': net.conv5.parameters()}], lr=lr)
 
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None
@@ -79,6 +84,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
     x = net.forward(im_data, gt_boxes, gt_classes, dontcare)
 
     # backward
+    # DEBUG_LOSS
     loss = net.loss
     bbox_loss += net.bbox_loss.data.cpu().numpy()[0]
     iou_loss += net.iou_loss.data.cpu().numpy()[0]

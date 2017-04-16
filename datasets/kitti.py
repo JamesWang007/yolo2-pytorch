@@ -73,6 +73,11 @@ class KittiDataset(ImageDataset):
         print('final', len(self._image_names))
         assert len(self._image_names) == len(self._annotations)
 
+        # DEBUG SMALL TEST
+        if 0:
+            self._image_names = self._image_names[:100]
+            self._annotations = self._annotations[:100]
+
         self._image_indexes = range(len(self._image_names))
 
     def next_batch(self):

@@ -43,7 +43,7 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
     _t = {'im_detect': Timer(), 'misc': Timer()}
     det_file = os.path.join(output_dir, 'detections.pkl')
 
-    for i in range(num_images//100):
+    for i in range(num_images):
 
         batch = imdb.next_batch()
         ori_im = batch['origin_im'][0]
@@ -111,29 +111,29 @@ if __name__ == '__main__':
     if use_default:
         trained_model = cfg.trained_model
     else:
-        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_20.h5')
+        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
 
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6040  default + FT conv5  epoch 1 trained with VOC12
     # 0.6335  default + FT conv5  epoch 1 trained with VOC07
 
-    # init_learning_rate  = 1e-3
+    # SGD  lr = 1e-3
     # 0.3669  default + FT conv5  epoch 20 trained with VOC07
     # 0.3887  default + FT conv5  epoch 50 trained with VOC07
     # 0.4342  default + FT conv5  epoch 80 trained with VOC07
     # 0.4506  default + FT conv5  epoch 125 trained with VOC07
 
-    # init_learning_rate  = 1e-4
+    # Adam lr = 1e-3
+    # 0.5790  default + FT conv5  epoch 20 trained with VOC07
+    # 0.5633  default + FT conv5  epoch 50 trained with VOC07
+
+    # SGD  lr = 1e-4
     # 0.6400  default + FT conv5  epoch 1 trained with VOC07
     # 0.6382  default + FT conv5  epoch 5 trained with VOC07
     # 0.6449  default + FT conv5  epoch 20 trained with VOC07
     # 0.6376  default + FT conv5  epoch 70 trained with VOC07
 
-    # Adam, lr = 1e-3
-    # 0.5790  default + FT conv5  epoch 20 trained with VOC07
-    # 0.5633  default + FT conv5  epoch 50 trained with VOC07
-
-    # Adam, lr = 1e-5
+    # Adam lr = 1e-5
     # 0.6370  default + FT conv5  epoch 20 trained with VOC07
     # 0.6473  default + FT conv5  epoch 50 trained with VOC07
     # 0.6542  default + FT conv5  epoch 110 trained with VOC07

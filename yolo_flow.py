@@ -75,8 +75,9 @@ def main():
     shutil.rmtree('output', ignore_errors=True)
     shutil.copytree('output_template', 'output')
 
-    trained_model = cfg.trained_model
-    thresh = 0.5
+    # trained_model = cfg.trained_model
+    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_4.h5')
+    thresh = 0.1
     use_kitti = True
     image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
     # image_dir = '/home/cory/imagenet_vid/2808'
@@ -103,7 +104,7 @@ def main():
                              key=str_index)
 
     key_frame_path = ''
-    detection_period = 5
+    detection_period = 1
     use_flow = False
 
     kitti_filename = 'yolo_flow_kitti_det.txt'

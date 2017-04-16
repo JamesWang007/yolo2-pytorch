@@ -25,13 +25,16 @@ print('load data succ...')
 
 net = Darknet19()
 
-use_default = True
-if use_default:
+use_model = 'conv'
+if use_model == 'default':
     net_utils.load_net(cfg.trained_model, net)
-else:
+elif use_model == 'exp':
     pretrained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_21.h5')
     net_utils.load_net(pretrained_model, net)
-    # net.load_from_npz(cfg.pretrained_model, num_conv=18)
+elif use_model == 'conv':
+    net.load_from_npz(cfg.pretrained_model, num_conv=18)
+else:
+    raise AssertionError
 
 net.cuda()
 net.train()
@@ -39,7 +42,7 @@ print('load net succ...')
 
 # optimizer
 start_epoch = 0
-cfg.init_learning_rate = 1e-5
+cfg.init_learning_rate = 1e-10
 lr = cfg.init_learning_rate
 # optimizer = torch.optim.SGD([{'params': net.conv5.parameters()}], lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
 optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}], lr=lr)
@@ -47,7 +50,7 @@ optimizer = torch.optim.Adam([{'params': net.conv5.parameters()}], lr=lr)
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None
 # use_tensorboard = False
-remove_all_log = True
+remove_all_log = False
 if use_tensorboard:
     cc = CrayonClient(hostname='127.0.0.1')
     if remove_all_log:

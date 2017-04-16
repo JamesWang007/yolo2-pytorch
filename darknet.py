@@ -102,7 +102,7 @@ def _process_batch(data):
     anchor_inds = np.argmax(anchor_ious, axis=0)
     for i, cell_ind in enumerate(cell_inds):
         if cell_ind >= hw or cell_ind < 0:
-            print(cell_ind)
+            print('warning: cell_ind >= hw', cell_ind, hw)
             continue
         a = anchor_inds[i]
 
@@ -165,6 +165,8 @@ class Darknet19(nn.Module):
 
     @property
     def loss(self):
+        # DEBUG_LOSS
+        # return self.bbox_loss + self.cls_loss
         return self.bbox_loss + self.iou_loss + self.cls_loss
 
     def forward(self, im_data, gt_boxes=None, gt_classes=None, dontcare=None):
@@ -196,6 +198,12 @@ class Darknet19(nn.Module):
 
         score_pred = conv5_reshaped[:, :, :, 5:].contiguous()
         prob_pred = F.softmax(score_pred.view(-1, score_pred.size()[-1])).view_as(score_pred)
+
+        '''p0 = score_pred[0].data.cpu().numpy()
+        i0 = iou_pred[0].data.cpu().numpy()
+        # print('score_pred[0]', sp0, sum(sp0.ravel()))
+        print('p   > 0.5', np.count_nonzero(p0 > 0.5))
+        print('iou > 0.5', np.where(i0 > 0.5))'''
 
         # for training
         if self.training:
@@ -342,7 +350,7 @@ class Darknet19(nn.Module):
                 list_key = key.split('.')
                 ptype = dest_src['{}.{}'.format(list_key[-2], list_key[-1])]
                 src_key = '{}-convolutional/{}:0'.format(i, ptype)
-                print(src_key, own_dict[key].size(), params[src_key].shape)
+                print('src_key', src_key, own_dict[key].size(), params[src_key].shape)
                 param = torch.from_numpy(params[src_key])
                 if ptype == 'kernel':
                     param = param.permute(3, 2, 0, 1)
