@@ -104,14 +104,14 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
 if __name__ == '__main__':
     # data loader
     imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
-                      yolo_utils.preprocess_test, processes=2, shuffle=False, dst_size=cfg.inp_size)
+                      yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
 
     net = Darknet19()
     use_default = False
     if use_default:
         trained_model = cfg.trained_model
     else:
-        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_1.h5')
+        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_50.h5')
 
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6040  default + FT conv5  epoch 1 trained with VOC12

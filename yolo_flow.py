@@ -1,4 +1,5 @@
 import os
+import time
 import shutil
 import numpy as np
 import cv2
@@ -76,10 +77,11 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_1.h5')
-    thresh = 0.1
+    # trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_30.h5')
+    trained_model = '/home/cory/yolo2-pytorch/models/training/epoch130_ft_lr-6_loss=0_48.h5'
+    thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0020'
     # image_dir = '/home/cory/imagenet_vid/2808'
 
     net = Darknet19()
@@ -104,7 +106,7 @@ def main():
                              key=str_index)
 
     key_frame_path = ''
-    detection_period = 1
+    detection_period = 5
     use_flow = False
 
     kitti_filename = 'yolo_flow_kitti_det.txt'
@@ -121,20 +123,24 @@ def main():
         image, im_data = preprocess(image_path)
         im_data = net_utils.np_to_variable(im_data, is_cuda=True, volatile=True).permute(0, 3, 1, 2)
 
+        layer_of_flow = 'conv4'
         # key frame
         if i % detection_period == 0 and use_flow:
             key_frame_path = image_path
             # conv5 feature map
-            conv5_feat_gpu = net.get_feature_map(im_data=im_data, layer='conv5')
-            conv5_feat = conv5_feat_gpu.data.cpu().numpy()
-            feature_map_all = plot_feature_map(conv5_feat, resize_ratio=1)
+            feature = net.get_feature_map(im_data=im_data, layer=layer_of_flow)
+            feature = feature.data.cpu().numpy()
+            feature_map_all = plot_feature_map(feature, resize_ratio=1)
             # cv2.imshow('feature_map', feature_map_all)
             cv2.imwrite('output/feature_map/{:04d}.jpg'.format(i), feature_map_all * 255)
 
         t_det.tic()
         if use_flow:
-            conv5_shifted_gpu = detect_by_flow(i, conv5_feat, image, image_path, key_frame_path)
-            bbox_pred, iou_pred, prob_pred = net.feed_feature(Variable(conv5_shifted_gpu))
+            t1 = time.time()
+            conv5_shifted_gpu = detect_by_flow(i, feature, image, image_path, key_frame_path)
+            t2 = time.time()
+            print('detect_by_flow', t2 - t1)
+            bbox_pred, iou_pred, prob_pred = net.feed_feature(Variable(conv5_shifted_gpu), layer=layer_of_flow)
 
         else:
             bbox_pred, iou_pred, prob_pred = net.forward(im_data)

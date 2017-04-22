@@ -6,6 +6,8 @@ import cv2
 from datasets.imdb import ImageDataset
 from datasets.voc_eval import voc_eval
 from utils.im_transform import imcv2_recolor
+from utils.im_transform import imcv2_affine_trans
+from utils.yolo import _offset_boxes
 from cfgs import config
 from cfgs import config_voc
 
@@ -116,11 +118,9 @@ class KittiDataset(ImageDataset):
         im = cv2.imread(im_path)
         ori_im = np.copy(im)
 
-        if inp_size is not None:
-            w, h = inp_size
-            im = cv2.resize(im, (w, h))
-
-        boxes = np.asarray(boxes, dtype=np.float)
+        im, trans_param = imcv2_affine_trans(im)
+        scale, offs, flip = trans_param
+        boxes = _offset_boxes(boxes, im.shape, scale, offs, flip)
 
         if boxes.shape == (0,):
             return im, boxes, [], [], ori_im
@@ -129,18 +129,10 @@ class KittiDataset(ImageDataset):
             w, h = inp_size
             boxes[:, 0::2] *= float(w) / im.shape[1]
             boxes[:, 1::2] *= float(h) / im.shape[0]
+            im = cv2.resize(im, (w, h))
         im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
         im = imcv2_recolor(im)
-        # im = imcv2_recolor(im)
-        # im /= 255.
-
-        # im = imcv2_recolor(im)
-        # h, w = inp_size
-        # im = cv2.resize(im, (w, h))
-        # im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
-        # im /= 255
         boxes = np.asarray(boxes, dtype=np.int)
-        gt_classes = np.asarray(gt_classes)
         return im, boxes, gt_classes, [], ori_im
 
     def get_image(self, img_path):

@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 import cv2
 import numpy as np
 from subprocess import check_output
+import sys
+sys.path.append('/home/cory/spynet')
+from spynet import Spynet
 
 
 def shift_filter(feature, flow):
@@ -32,12 +35,16 @@ def shift_filter(feature, flow):
     return np.asarray([shifted_feature])
 
 
+spynet = Spynet()
+
+
 def spynet_flow(image_path1, image_path2):
-    flow_cmd = './run_flow.sh ' + image_path1 + ' ' + image_path2
-    check_output([flow_cmd], shell=True)
-    flow = np.load('./flow.npy')
-    flow = flow.transpose(1, 2, 0)
-    # flow.shape should be (height, width, 2)
+    import time
+    t1 = time.time()
+    flow = spynet.compute_flow(image_path1, image_path2)
+    t2 = time.time()
+    print(t2 -t1)
+    flow = np.transpose(flow[0], (1, 2, 0))  # 2 x h x w--> h x w x 2
     return flow
 
 

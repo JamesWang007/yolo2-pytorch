@@ -236,9 +236,14 @@ class Darknet19(nn.Module):
         bbox_pred = torch.cat([xy_pred, wh_pred], 3)
         return bbox_pred, iou_pred, prob_pred
 
-    def feed_feature(self, conv5, gt_boxes=None, gt_classes=None, dontcare=None):
+    def feed_feature(self, feature, layer, gt_boxes=None, gt_classes=None, dontcare=None):
         # for detection
         # bsize, c, h, w -> bsize, h, w, c -> bsize, h x w, num_anchors, 5+num_classes
+        if layer == 'conv4':
+            conv4 = feature
+            conv5 = self.conv5(conv4)
+        else:
+            conv5 = feature
         bsize, _, h, w = conv5.size()
         # assert bsize == 1, 'detection only support one image per batch'
         conv5_reshaped = conv5.permute(0, 2, 3, 1).contiguous().view(bsize, -1, cfg.num_anchors, cfg.num_classes + 5)
