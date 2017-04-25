@@ -5,7 +5,8 @@ import torch
 import cfgs.config as cfg
 import utils.network as net_utils
 from darknet import Darknet19
-from datasets.kitti import KittiDataset
+from datasets.KittiDataset import KittiDataset
+# from datasets.ImageFileDataset import ImageFileDataset
 from utils.timer import Timer
 
 try:
@@ -22,20 +23,20 @@ batch_size = 16
 imdb = KittiDataset('kitti', '/home/cory/KITTI_Dataset',
                     '/home/cory/yolo2-pytorch/imgs_exclude_1_19.txt',
                     '/home/cory/yolo2-pytorch/gt_exclude_1_19.txt',
-                    batch_size, KittiDataset.preprocess_train, processes=4, shuffle=True, dst_size=None)
+                    batch_size, KittiDataset.preprocess_train, processes=1, shuffle=False, dst_size=None)
 print('load data succ...')
 net = Darknet19()
 
 # CUDA_VISIBLE_DEVICES=1
 
-use_model_type = 'exp'
+use_model_type = 'default'
 use_model = ''
 if use_model_type == 'default':
     use_model = cfg.trained_model
     net_utils.load_net(use_model, net)
 elif use_model_type == 'exp':
-    use_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_35.h5')  # 88 + 35 + 7
-    # use_model = '/home/cory/yolo2-pytorch/models/training/epoch130_new.h5'
+    # use_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_7.h5')  # 88 + 35 + 7
+    use_model = '/home/cory/yolo2-pytorch/models/training/n2_epoch20_lr-3.h5'
     net_utils.load_net(use_model, net)
 elif use_model_type == 'conv':
     use_model = cfg.pretrained_model
@@ -49,7 +50,7 @@ print('load net succ...')
 
 # optimizer
 start_epoch = 0
-cfg.init_learning_rate = 1e-6
+cfg.init_learning_rate = 1e-3
 lr = cfg.init_learning_rate
 optimizer = torch.optim.Adam([{'params': net.conv3.parameters()},
                               {'params': net.conv4.parameters()},

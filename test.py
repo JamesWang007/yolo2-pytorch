@@ -82,8 +82,11 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
                     all_boxes[j][i] = all_boxes[j][i][keep, :]
         nms_time = _t['misc'].toc()
 
-        if i % 20 == 0:
-            print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s'.format(i + 1, num_images, detect_time, nms_time))
+        if i % 100 == 0:
+            print(i, end=' ')
+            import sys
+            sys.stdout.flush()
+            # print('im_detect: {:d}/{:d} {:.3f}s {:.3f}s'.format(i + 1, num_images, detect_time, nms_time))
             _t['im_detect'].clear()
             _t['misc'].clear()
 
@@ -98,52 +101,63 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
         pickle.dump(all_boxes, f, pickle.HIGHEST_PROTOCOL)
 
     print('Evaluating detections')
-    imdb.evaluate_detections(all_boxes, output_dir)
+    mAP = imdb.evaluate_detections(all_boxes, output_dir)
+    return mAP
 
 
-if __name__ == '__main__':
-    # data loader
+def test_ap_exp(model):
+    print(model)
     imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
                       yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
 
     net = Darknet19()
-    use_default = False
-    if use_default:
-        trained_model = cfg.trained_model
-    else:
-        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_50.h5')
-
-    # 0.7186  default (yolo-voc.weights.h5)
-    # 0.6040  default + FT conv5  epoch 1 trained with VOC12
-    # 0.6335  default + FT conv5  epoch 1 trained with VOC07
-
-    # SGD  lr = 1e-3
-    # 0.3669  default + FT conv5  epoch 20 trained with VOC07
-    # 0.3887  default + FT conv5  epoch 50 trained with VOC07
-    # 0.4342  default + FT conv5  epoch 80 trained with VOC07
-    # 0.4506  default + FT conv5  epoch 125 trained with VOC07
-
-    # Adam lr = 1e-3
-    # 0.5790  default + FT conv5  epoch 20 trained with VOC07
-    # 0.5633  default + FT conv5  epoch 50 trained with VOC07
-
-    # SGD  lr = 1e-4
-    # 0.6400  default + FT conv5  epoch 1 trained with VOC07
-    # 0.6382  default + FT conv5  epoch 5 trained with VOC07
-    # 0.6449  default + FT conv5  epoch 20 trained with VOC07
-    # 0.6376  default + FT conv5  epoch 70 trained with VOC07
-
-    # Adam lr = 1e-5
-    # 0.6370  default + FT conv5  epoch 20 trained with VOC07
-    # 0.6473  default + FT conv5  epoch 50 trained with VOC07
-    # 0.6542  default + FT conv5  epoch 110 trained with VOC07
-
-    net_utils.load_net(trained_model, net)
-    print(trained_model)
+    net_utils.load_net(model, net)
 
     net.cuda()
     net.eval()
 
-    test_net(net, imdb, max_per_image, thresh, vis)
+    mAP = test_net(net, imdb, max_per_image, thresh, vis)
 
     imdb.close()
+    return mAP
+
+
+if __name__ == '__main__':
+    use_default = False
+    if use_default:
+        trained_model = cfg.trained_model
+    else:
+        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_36.h5')
+    test_ap_exp(trained_model)
+
+    # 0.7186  default (yolo-voc.weights.h5)
+    # 0.6802  epoch_2 ADAM lr-6
+    # 0.6754  epoch_4 ADAM lr-6
+    # 0.6685  epoch_6 ADAM lr-6
+    # 0.6682  epoch_8 ADAM lr-6
+
+    # 0.7176  epoch_1 SGD lr-6
+    # 0.7153  epoch_2
+    # 0.7141  epoch_4
+    # 0.7121  epoch_6
+
+    # 0.4531  epoch_1 ADAM lr-3 New conv3_4_5
+    # 0.4778  epoch_2
+    # 0.4973  epoch_3
+    # 0.5186  epoch_8
+    # 0.5434  epoch_10
+    # 0.5507  epoch_11
+    # 0.5443  epoch_12
+    # 0.5243  epoch_15
+    # 0.5180  epoch_20
+    # 0.5311  epoch_22
+    # 0.5510  epoch_25
+    # 0.5558  epoch_27
+    # 0.5499  epoch_30
+    # 0.5332  epoch_32
+    # 0.5573  epoch_36
+    # 0.5550  epoch_52
+    # 0.5719  epoch_54
+    # 0.5580  epoch_56
+    # 0.5621  epoch_58
+    # 0.5489  epoch_62

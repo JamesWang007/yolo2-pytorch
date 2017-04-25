@@ -17,7 +17,7 @@ class KittiDataset(ImageDataset):
                  batch_size, im_processor, processes=2, shuffle=True, dst_size=None):
         super(KittiDataset, self).__init__(imdb_name, datadir, batch_size, im_processor, processes, shuffle, dst_size)
 
-        self._classes = ('car', 'pedestrian', 'cyclist')
+        self._classes = ('car', 'pedestrian', 'dontcare')
         self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
         self._image_ext = '.png'
         self.dst_size = config.inp_size
@@ -40,26 +40,26 @@ class KittiDataset(ImageDataset):
             self._image_names = [line.strip() for line in f.readlines()]
 
         counter = 0
+        kitti_voc_label_map = {'Car': 'car', 'Pedestrian': 'person'}
         with open(self.gt_list_file) as f:
             for gt_per_file in f.readlines():
                 gt_per_file = gt_per_file.strip()
                 with open(gt_per_file) as gt_file:
                     gt_classes = list()
                     boxes = list()
-                    is_label = False
+                    is_label = True
                     for line in gt_file.readlines():
                         values = line.strip().split(' ')
-                        if values[0] == 'Car':
-                            gt_classes.append(config_voc.label_names.index('car'))
-                            boxes.append([int(float(v)) for v in values[1:]])
-                            is_label = True
-                        elif values[0] == 'Pedestrian':
-                            gt_classes.append(config_voc.label_names.index('person'))
+                        kitti_label = values[0]
+                        voc_label = kitti_voc_label_map.get(kitti_label)
+                        if voc_label is None:
+                            gt_classes.append(-1)
                             boxes.append([int(float(v)) for v in values[1:]])
                             is_label = True
                         else:
-                            # ignore other class
-                            continue
+                            gt_classes.append(config_voc.label_names.index(voc_label))
+                            boxes.append([int(float(v)) for v in values[1:]])
+                            is_label = True
 
                     assert len(gt_classes) == len(boxes)
                     if not is_label:
@@ -71,6 +71,7 @@ class KittiDataset(ImageDataset):
 
         print('all', len(self._image_names))
         print('delete', len(empty_det_id))
+        print(empty_det_id)
         self._image_names = np.delete(self._image_names, empty_det_id)
         self._annotations = np.delete(self._annotations, empty_det_id)
         print('final', len(self._image_names))

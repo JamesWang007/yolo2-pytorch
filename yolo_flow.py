@@ -77,12 +77,12 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    # trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_30.h5')
-    trained_model = '/home/cory/yolo2-pytorch/models/training/epoch130_ft_lr-6_loss=0_48.h5'
+    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_100.h5')
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/epoch290_ft_lr-3_loss=0.24.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0020'
-    # image_dir = '/home/cory/imagenet_vid/2808'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
+    # image_dir = '/home/cory/imagenet_vid/4716'
 
     net = Darknet19()
     net_utils.load_net(trained_model, net)

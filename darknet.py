@@ -39,6 +39,8 @@ def _process_batch(data):
 
     bbox_pred_np, gt_boxes, gt_classes, dontcares = data
 
+    # mask out dontcare
+
     # net output
     hw, num_anchors, _ = bbox_pred_np.shape
 
@@ -104,6 +106,7 @@ def _process_batch(data):
         if cell_ind >= hw or cell_ind < 0:
             print('warning: cell_ind >= hw', cell_ind, hw)
             continue
+
         a = anchor_inds[i]
 
         _iou_mask[cell_ind, a, :] = cfg.object_scale
@@ -113,8 +116,10 @@ def _process_batch(data):
         target_boxes[i, 2:4] /= anchors[a]
         _boxes[cell_ind, a, :] = target_boxes[i]
 
-        _class_mask[cell_ind, a, :] = cfg.class_scale
-        _classes[cell_ind, a, gt_classes[i]] = 1.
+        # do not evaluate for dontcare
+        if gt_classes[i] != -1:
+            _class_mask[cell_ind, a, :] = cfg.class_scale
+            _classes[cell_ind, a, gt_classes[i]] = 1.
 
     _boxes[:, :, 2:4] = np.maximum(_boxes[:, :, 2:4], 0.001)
     _boxes[:, :, 2:4] = np.log(_boxes[:, :, 2:4])
@@ -222,8 +227,18 @@ class Darknet19(nn.Module):
 
             # _boxes[:, :, :, 2:4] = torch.log(_boxes[:, :, :, 2:4])
             box_mask = box_mask.expand_as(_boxes)
+
+            '''np_class = _classes.data.cpu().numpy()
+            eval_idx = np.where(np_class != 0)
+            print(eval_idx)'''
+
             # self.bbox_loss = torch.sum(torch.pow(_boxes - bbox_pred, 2) * box_mask) / num_boxes
             self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred * box_mask, _boxes * box_mask) / num_boxes
+
+            bbox = (bbox_pred * box_mask).data.cpu().numpy()
+            bbox_active = bbox[np.where(bbox > 0.1)]
+            bbox_gt = (_boxes * box_mask).data.cpu().numpy()
+            bbox_gt_active = bbox_gt[np.where(bbox_gt > 0.1)]
 
             # self.iou_loss = torch.sum(torch.pow(_ious - iou_pred, 2) * iou_mask) / num_boxes
             self.iou_loss = nn.MSELoss(size_average=False)(iou_pred * iou_mask, _ious * iou_mask) / num_boxes
@@ -231,6 +246,9 @@ class Darknet19(nn.Module):
             class_mask = class_mask.expand_as(prob_pred)
             # self.cls_loss = torch.sum(torch.pow(_classes - prob_pred, 2) * class_mask) / num_boxes
             self.cls_loss = nn.MSELoss(size_average=False)(prob_pred * class_mask, _classes * class_mask) / num_boxes
+
+            # idx = np.where(class_mask.data.cpu().numpy() == 1.0)
+            # print(idx)
 
         wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
         bbox_pred = torch.cat([xy_pred, wh_pred], 3)

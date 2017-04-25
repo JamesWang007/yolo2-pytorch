@@ -5,9 +5,9 @@ import torch
 import cfgs.config as cfg
 import utils.network as net_utils
 from darknet import Darknet19
+# from datasets.KittiDataset import KittiDataset
 from datasets.ImageFileDataset import ImageFileDataset
 from utils.timer import Timer
-from test import test_ap_exp
 
 try:
     from pycrayon import CrayonClient
@@ -15,24 +15,24 @@ except ImportError:
     CrayonClient = None
 
 # data loader
-batch_size = 32
-imdb = ImageFileDataset('voc0712', '',
-                        '/home/cory/yolo2-pytorch/VOC/train_images.txt',
-                        '/home/cory/yolo2-pytorch/VOC/train_labels.txt',
-                        batch_size, ImageFileDataset.preprocess_train, processes=4, shuffle=True, dst_size=None)
-print('load data succeeded')
+batch_size = 16
+imdb = ImageFileDataset('kitti', '/home/cory/KITTI_Dataset',
+                    '/home/cory/yolo2-pytorch/imgs_exclude_1_19.txt',
+                    '/home/cory/yolo2-pytorch/gt_exclude_1_19.txt',
+                    batch_size, ImageFileDataset.preprocess_train, processes=4, shuffle=True, dst_size=None)
+print('load data succ...')
 net = Darknet19()
 
 # CUDA_VISIBLE_DEVICES=1
 
-use_model_type = 'exp'
+use_model_type = 'default'
 use_model = ''
 if use_model_type == 'default':
     use_model = cfg.trained_model
     net_utils.load_net(use_model, net)
 elif use_model_type == 'exp':
-    use_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_6.h5')
-    # use_model = '/home/cory/yolo2-pytorch/models/training/n3_epoch36.h5'  # 62
+    # use_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_7.h5')  # 88 + 35 + 7
+    use_model = '/home/cory/yolo2-pytorch/models/training/n2_epoch20_lr-3.h5'
     net_utils.load_net(use_model, net)
 elif use_model_type == 'conv':
     use_model = cfg.pretrained_model
@@ -42,16 +42,15 @@ else:
 
 net.cuda()
 net.train()
-print('load net succeeded')
+print('load net succ...')
 
 # optimizer
 start_epoch = 0
-cfg.init_learning_rate = 1e-3
+cfg.init_learning_rate = 1e-6
 lr = cfg.init_learning_rate
-optimizer = torch.optim.Adam([{'params': net.conv3.parameters()},
+optimizer = torch.optim.SGD([{'params': net.conv3.parameters()},
                               {'params': net.conv4.parameters()},
                               {'params': net.conv5.parameters()}], lr=lr)
-# optimizer = torch.optim.Adam(params=net.parameters(), lr=lr)
 
 # show training parameters
 print('-------------------------------')
@@ -65,10 +64,9 @@ print('-------------------------------')
 # tensorboad
 use_tensorboard = cfg.use_tensorboard and CrayonClient is not None
 
-use_tensorboard = True
+use_tensorboard = False
 remove_all_log = False
 if use_tensorboard:
-    print(cfg.exp_name)
     cc = CrayonClient(hostname='127.0.0.1')
     if remove_all_log:
         print('remove all experiments')
@@ -89,6 +87,7 @@ t = Timer()
 for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch_per_epoch):
     t.tic()
     # batch
+    current_epoch = imdb.epoch
     batch = imdb.next_batch()
     im = batch['images']
     gt_boxes = batch['gt_boxes']
@@ -118,7 +117,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
         iou_loss /= cnt
         cls_loss /= cnt
         print('epoch: %d, step: %d, loss: %.3f, bbox_loss: %.3f, iou_loss: %.3f, cls_loss: %.3f (%.2f s/batch)' % (
-            imdb.epoch, step, train_loss, bbox_loss, iou_loss, cls_loss, duration))
+            current_epoch, step, train_loss, bbox_loss, iou_loss, cls_loss, duration))
 
         if use_tensorboard and step % cfg.log_interval == 0:
             optimizer_lr = optimizer.param_groups[0]['lr']
@@ -133,20 +132,13 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
         cnt = 0
         t.clear()
 
-    if step > 0 and (step % imdb.batch_per_epoch == 0):
+    if imdb.epoch != current_epoch:
         if isinstance(optimizer, torch.optim.SGD) and imdb.epoch in cfg.lr_decay_epochs:
             lr *= cfg.lr_decay
             optimizer = torch.optim.SGD(net.parameters(), lr=lr, momentum=cfg.momentum, weight_decay=cfg.weight_decay)
 
-        save_name = os.path.join(cfg.train_output_dir, '{}_{}.h5'.format(cfg.exp_name, imdb.epoch))
-        print('save model: {}'.format(save_name))
+        save_name = os.path.join(cfg.train_output_dir, '{}_{}.h5'.format(cfg.exp_name, current_epoch))
         net_utils.save_net(save_name, net)
-        if imdb.epoch % 2 == 0:
-            print('evaluate on test set')
-            mAP = test_ap_exp(save_name)
-
-            if use_tensorboard:
-                optimizer_lr = optimizer.param_groups[0]['lr']
-                exp.add_scalar_value('mAP', mAP, step=step)
+        print('save model: {}'.format(save_name))
 
 imdb.close()
