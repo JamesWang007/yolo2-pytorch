@@ -95,9 +95,13 @@ class ImageFileDataset(ImageDataset):
                                   ([self.image_names[i], self.get_annotation(i), self.dst_size]
                                    for i in ids))
         self.current_index += self.batch_size
+
+        # reset index if reach the end of epoch
         if self.current_index >= len(self.indexes):
             self._epoch += 1
             self.current_index = 0
+            if self._shuffle:
+                np.random.shuffle(self.indexes)
 
         batch = {'images': [], 'gt_boxes': [], 'gt_classes': [], 'dontcare': [], 'origin_im': []}
         for r in result:

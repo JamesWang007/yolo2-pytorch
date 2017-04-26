@@ -1,7 +1,8 @@
+import h5py
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
-import numpy as np
 
 
 class Conv2d(nn.Module):
@@ -59,11 +60,13 @@ def save_net(fname, net):
 
 
 def load_net(fname, net):
-    import h5py
-    h5f = h5py.File(fname, mode='r')
-    for k, v in net.state_dict().items():
-        param = torch.from_numpy(np.asarray(h5f[k]))
-        v.copy_(param)
+    if fname.find('.npz') >= 0:
+        net.load_from_npz(fname, num_conv=18)
+    else:
+        h5f = h5py.File(fname, mode='r')
+        for k, v in net.state_dict().items():
+            param = torch.from_numpy(np.asarray(h5f[k]))
+            v.copy_(param)
 
 
 def load_pretrained_npy(faster_rcnn_model, fname):

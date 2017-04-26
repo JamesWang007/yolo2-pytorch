@@ -77,8 +77,8 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_100.h5')
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/epoch290_ft_lr-3_loss=0.24.h5'
+    # trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_100.h5')
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp1/kitti_ft_exp1_3.h5'
     thresh = 0.5
     use_kitti = True
     image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'

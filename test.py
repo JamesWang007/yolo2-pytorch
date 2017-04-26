@@ -123,12 +123,7 @@ def test_ap_exp(model):
 
 
 if __name__ == '__main__':
-    use_default = False
-    if use_default:
-        trained_model = cfg.trained_model
-    else:
-        trained_model = os.path.join(cfg.train_output_dir, 'darknet19_voc07trainval_exp1_36.h5')
-    test_ap_exp(trained_model)
+    test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp2/voc0712_trainval_exp2_110.h5')
 
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6802  epoch_2 ADAM lr-6
@@ -161,3 +156,10 @@ if __name__ == '__main__':
     # 0.5580  epoch_56
     # 0.5621  epoch_58
     # 0.5489  epoch_62
+
+
+    # exp2, SGD lr=1E-3
+    # 0.0594  0
+    # 0.1241  1
+    # 0.1820  2
+    # 0.6354  91

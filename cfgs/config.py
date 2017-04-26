@@ -1,6 +1,7 @@
 import os
 from cfgs.config_voc import *
-from cfgs.exps.darknet19_exp1 import *
+# from cfgs.exps.kitti_ft_exp1 import *
+from cfgs.exps.darknet19_exp2 import *
 
 
 def mkdir(path, max_depth=3):
@@ -16,9 +17,9 @@ def mkdir(path, max_depth=3):
 ############################
 # inp_size = np.array([1248, 352], dtype=np.int)   # w, h
 # inp_size = np.array([608, 608], dtype=np.int)
-inp_size = np.array([416, 416], dtype=np.int)
 # inp_size = np.array([512, 288], dtype=np.int)
 # inp_size = np.array([1280, 736], dtype=np.int)
+# inp_size = np.array([416, 416], dtype=np.int)
 out_size = inp_size / 32
 
 
@@ -53,6 +54,8 @@ trained_model = os.path.join(MODEL_DIR, h5_fname)
 pretrained_model = os.path.join(MODEL_DIR, pretrained_fname)
 train_output_dir = os.path.join(TRAIN_DIR, exp_name)
 test_output_dir = os.path.join(TEST_DIR, imdb_test, h5_fname)
+log_file = os.path.join(train_output_dir, 'train.log')
+check_point_file = os.path.join(train_output_dir, 'check_point.txt')
 mkdir(train_output_dir, max_depth=3)
 mkdir(test_output_dir, max_depth=4)
 

@@ -127,6 +127,10 @@ class ImageDataset(object):
     def epoch(self):
         return self._epoch
 
+    @epoch.setter
+    def epoch(self, value):
+        self._epoch = value
+
     @property
     def batch_size(self):
         return self._batch_size
