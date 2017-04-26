@@ -1,7 +1,7 @@
 
 
-all_img_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_images.txt'
-all_gt_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_gt.txt'
+all_images_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_images.txt'
+all_labels_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_gt.txt'
 
 
 def copy_exclude(filename, outfilename, patterns):
@@ -14,7 +14,7 @@ def copy_exclude(filename, outfilename, patterns):
                         pattern_found = True
                 if not pattern_found:
                     out.write(line)
-                    print(line)
+                    print(line.strip())
 
-copy_exclude(all_img_file, 'imgs_exclude_1_19.txt', ['/0001/', '/0019/'])
-copy_exclude(all_gt_file, 'gt_exclude_1_19.txt', ['/0001/', '/0019/'])
+copy_exclude(all_images_file, 'kitti_train_images.txt', ['/0001/', '/0019/'])
+copy_exclude(all_labels_file, 'kitti_train_labels.txt', ['/0001/', '/0019/'])
