@@ -79,10 +79,7 @@ class ImageFileDataset(ImageDataset):
                 except ValueError:
                     label_id = -1
                 gt_classes.append(label_id)
-                if dataset_foramt == 'kitti':
-                    bbox = [int(float(v)) for v in values[1:]]
-                else:
-                    bbox = [int(v) - 1 for v in values[1:]]
+                bbox = [int(float(v)) for v in values[1:]]
                 boxes.append(bbox)
                 has_label = True
         assert len(gt_classes) == len(boxes)

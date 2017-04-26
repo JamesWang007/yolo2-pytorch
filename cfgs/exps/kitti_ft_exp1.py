@@ -15,8 +15,8 @@ optimizer = 'SGD'  # 'SGD, Adam'
 opt_param = 'all'  # 'all, conv345'
 
 start_step = 0
-lr_epoch = (0,)
-lr_val = (1E-5,)
+lr_epoch = (0, 60)
+lr_val = (1E-5, 1E-6)
 
 max_epoch = 200
 

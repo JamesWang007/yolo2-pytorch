@@ -80,7 +80,7 @@ def main():
 
     # trained_model = cfg.trained_model
     # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp2/voc0712_trainval_exp2_160.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp1/kitti_ft_exp1_40.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp1/kitti_ft_exp1_10.h5'
     thresh = 0.5
     use_kitti = True
     image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
