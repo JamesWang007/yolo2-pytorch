@@ -78,12 +78,14 @@ train_loss = 0
 bbox_loss, iou_loss, cls_loss = 0., 0., 0.
 cnt = 0
 timer = Timer()
+
+
 for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch_per_epoch):
     timer.tic()
     prev_epoch = imdb.epoch
     batch = imdb.next_batch()
 
-    # for next epoch
+    # change to next epoch
     if imdb.epoch > prev_epoch:
         # save trained weights
         save_name = os.path.join(cfg.train_output_dir, '{}_{}.h5'.format(cfg.exp_name, imdb.epoch))
@@ -135,12 +137,11 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
                 imdb.epoch, step, train_loss, bbox_loss, iou_loss, cls_loss, duration))
 
         if use_tensorboard and step % cfg.log_interval == 0:
-            optimizer_lr = optimizer.param_groups[0]['lr']
             exp.add_scalar_value('loss_train', train_loss, step=step)
             exp.add_scalar_value('loss_bbox', bbox_loss, step=step)
             exp.add_scalar_value('loss_iou', iou_loss, step=step)
             exp.add_scalar_value('loss_cls', cls_loss, step=step)
-            exp.add_scalar_value('learning_rate', optimizer_lr, step=step)
+            exp.add_scalar_value('learning_rate', get_optimizer_lr(optimizer), step=step)
 
         train_loss = 0
         bbox_loss, iou_loss, cls_loss = 0., 0., 0.

@@ -8,9 +8,12 @@ def lookup_lr(cfg, ep):
     return cfg.lr_val[- 1]  # last lr
 
 
+def get_optimizer_lr(optimizer):
+    return optimizer.param_groups[0]['lr']
+
+
 def get_optimizer(cfg, net, epoch):
     lr = lookup_lr(cfg, epoch)
-    print('optimizer_lr =', lr)
     optimizer = None
     if cfg.optimizer == 'SGD':
         if cfg.opt_param == 'all':
@@ -34,4 +37,6 @@ def get_optimizer(cfg, net, epoch):
                                                  {'params': net.conv5.parameters()}],
                                          lr=lr)
     assert optimizer is not None
+
+    print('optimizer_lr =', get_optimizer_lr(optimizer))
     return optimizer
