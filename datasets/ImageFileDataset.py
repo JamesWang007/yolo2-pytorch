@@ -18,7 +18,7 @@ class ImageFileDataset(ImageDataset):
         super(ImageFileDataset, self).__init__(imdb_name, datadir, batch_size, im_processor, processes, shuffle, dst_size)
 
         self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
-        self.dst_size = config.inp_size
+        self.dst_size = dst_size
 
         self.image_list_file = image_list_file
         self.label_list_file = train_labels
@@ -88,11 +88,11 @@ class ImageFileDataset(ImageDataset):
         assert len(gt_classes) == len(boxes)
         return {'boxes': boxes, 'gt_classes': gt_classes, 'has_label': has_label}
 
-    def next_batch(self):
+    def next_batch(self, dst_size):
         batch_end_index = min(self.current_index + self.batch_size, len(self.indexes))
         ids = [self.indexes[i] for i in range(self.current_index, batch_end_index)]
         result = self.pool.map(self._im_processor,
-                                  ([self.image_names[i], self.get_annotation(i), self.dst_size]
+                                  ([self.image_names[i], self.get_annotation(i), dst_size]
                                    for i in ids))
         self.current_index += self.batch_size
 

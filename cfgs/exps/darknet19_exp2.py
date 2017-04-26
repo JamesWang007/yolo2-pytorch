@@ -4,7 +4,11 @@ exp_name = 'voc0712_trainval_exp2'
 dataset_name = 'voc'
 pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
 
+network_size_rand_period = 10
+inp_size_candidates = [(320, 320), (352, 352), (384, 384), (416, 416), (448, 448),
+                       (480, 480), (512, 512), (544, 544), (576, 576), (608, 608)]
 inp_size = np.array([416, 416], dtype=np.int)
+out_size = inp_size / 32
 
 optimizer = 'SGD'  # 'SGD, Adam'
 opt_param = 'all'  # 'all, conv345'
@@ -29,7 +33,7 @@ iou_thresh = 0.6
 # dataset
 imdb_train = 'voc_2012_trainval'
 imdb_test = 'voc_2007_test'
-train_images = '/home/cory/yolo2-pytorch/VOC/train_images.txt'
-train_labels = '/home/cory/yolo2-pytorch/VOC/train_labels.txt'
+train_images = '/home/cory/yolo2-pytorch/train_data/voc_train_images.txt'
+train_labels = '/home/cory/yolo2-pytorch/train_data/voc_train_labels.txt'
 batch_size = 1
-train_batch_size = 32
+train_batch_size = 16

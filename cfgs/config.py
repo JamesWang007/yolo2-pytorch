@@ -1,7 +1,7 @@
 import os
 from cfgs.config_voc import *
-from cfgs.exps.kitti_ft_exp1 import *
-# from cfgs.exps.darknet19_exp2 import *
+# from cfgs.exps.kitti_ft_exp1 import *
+from cfgs.exps.darknet19_exp2 import *
 
 
 def mkdir(path, max_depth=3):
@@ -20,7 +20,7 @@ def mkdir(path, max_depth=3):
 # inp_size = np.array([512, 288], dtype=np.int)
 # inp_size = np.array([1280, 736], dtype=np.int)
 # inp_size = np.array([416, 416], dtype=np.int)
-out_size = inp_size / 32
+# out_size = inp_size / 32
 
 
 # for display

@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 import cfgs.config as cfg
 import utils.network as net_utils
@@ -49,7 +50,6 @@ print('use_model', use_model)
 print('exp_name', cfg.exp_name)
 print('optimizer', cfg.optimizer)
 print('opt_param', cfg.opt_param)
-print('network size', cfg.inp_size)
 print('train_batch_size', cfg.train_batch_size)
 print('start_epoch', start_epoch)
 print('lr', lookup_lr(cfg, start_epoch))
@@ -79,13 +79,23 @@ bbox_loss, iou_loss, cls_loss = 0., 0., 0.
 cnt = 0
 timer = Timer()
 
+# default input size
+network_size = cfg.inp_size
 
 for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch_per_epoch):
     timer.tic()
-    prev_epoch = imdb.epoch
-    batch = imdb.next_batch()
 
-    # change to next epoch
+    # random change network size
+    if step % cfg.network_size_rand_period == 0:
+        rand_id = np.random.randint(0, len(cfg.inp_size_candidates))
+        rand_network_size = cfg.inp_size_candidates[rand_id]
+        # print(rand_network_size)
+        network_size = np.array(rand_network_size, dtype=np.int)
+
+    prev_epoch = imdb.epoch
+    batch = imdb.next_batch(network_size)
+
+    # when go to next epoch
     if imdb.epoch > prev_epoch:
         # save trained weights
         save_name = os.path.join(cfg.train_output_dir, '{}_{}.h5'.format(cfg.exp_name, imdb.epoch))
@@ -109,7 +119,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
 
     # forward
     im_data = net_utils.np_to_variable(im, is_cuda=True, volatile=False).permute(0, 3, 1, 2)
-    x = net.forward(im_data, gt_boxes, gt_classes, dontcare)
+    x = net.forward(im_data, gt_boxes, gt_classes, dontcare, network_size)
 
     # loss
     loss = net.loss

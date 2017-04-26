@@ -33,11 +33,9 @@ def _make_layers(in_channels, net_cfg):
 
 
 def _process_batch(data):
-    W, H = cfg.out_size
-    inp_size = cfg.inp_size
-    out_size = cfg.out_size
-
-    bbox_pred_np, gt_boxes, gt_classes, dontcares = data
+    bbox_pred_np, gt_boxes, gt_classes, dontcares, inp_size = data
+    out_size = inp_size / 32
+    W, H = out_size
 
     # mask out dontcare
 
@@ -174,7 +172,7 @@ class Darknet19(nn.Module):
         # return self.bbox_loss + self.cls_loss
         return self.bbox_loss + self.iou_loss + self.cls_loss
 
-    def forward(self, im_data, gt_boxes=None, gt_classes=None, dontcare=None):
+    def forward(self, im_data, gt_boxes=None, gt_classes=None, dontcare=None, inp_size=None):
         conv1s = self.conv1s(im_data)
 
         conv2 = self.conv2(conv1s)
@@ -214,7 +212,7 @@ class Darknet19(nn.Module):
         if self.training:
             bbox_pred_np = bbox_pred.data.cpu().numpy()
             _boxes, _ious, _classes, _box_mask, _iou_mask, _class_mask = self._build_target(
-                bbox_pred_np, gt_boxes, gt_classes, dontcare)
+                bbox_pred_np, gt_boxes, gt_classes, dontcare, inp_size)
 
             _boxes = net_utils.np_to_variable(_boxes)
             _ious = net_utils.np_to_variable(_ious)
@@ -340,13 +338,13 @@ class Darknet19(nn.Module):
 
         return None
 
-    def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, dontcare):
+    def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, dontcare, inp_size):
         """
         :param bbox_pred: shape: (bsize, h x w, num_anchors, 4) : (sig(tx), sig(ty), exp(tw), exp(th))
         """
         bsize = bbox_pred_np.shape[0]
 
-        targets = self.pool.map(_process_batch, ((bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b]) for b in range(bsize)))
+        targets = self.pool.map(_process_batch, ((bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b], inp_size) for b in range(bsize)))
 
         _boxes = np.stack(tuple((row[0] for row in targets)))
         _ious = np.stack(tuple((row[1] for row in targets)))
