@@ -89,7 +89,12 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
     if step % cfg.network_size_rand_period == 0:
         rand_id = np.random.randint(0, len(cfg.inp_size_candidates))
         rand_network_size = cfg.inp_size_candidates[rand_id]
-        # print(rand_network_size)
+        network_size = np.array(rand_network_size, dtype=np.int)
+
+    debug_rand = False
+    if debug_rand:
+        rand_network_size = cfg.inp_size_candidates[step % len(cfg.inp_size_candidates)]
+        print(rand_network_size)
         network_size = np.array(rand_network_size, dtype=np.int)
 
     prev_epoch = imdb.epoch

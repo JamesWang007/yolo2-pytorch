@@ -123,8 +123,9 @@ def test_ap_exp(model):
 
 
 if __name__ == '__main__':
-    test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp2/voc0712_trainval_exp2_7.h5')
-
+    # test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp5/voc0712_trainval_exp5_160.h5')
+    test_ap_exp(cfg.trained_model)
+    # test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_adam_exp1/voc0712_adam_exp1_40.h5')
     # 0.7186  default (yolo-voc.weights.h5)
     # 0.6802  epoch_2 ADAM lr-6
     # 0.6754  epoch_4 ADAM lr-6

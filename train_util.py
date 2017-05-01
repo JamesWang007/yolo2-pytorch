@@ -30,11 +30,14 @@ def get_optimizer(cfg, net, epoch):
                                         lr=lr)
     elif cfg.optimizer == 'Adam':
         if cfg.opt_param == 'all':
-            optimizer = torch.optim.Adam(params=net.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(params=net.parameters(),
+                                         weight_decay=cfg.weight_decay,
+                                         lr=lr)
         elif cfg.opt_param == 'conv345':
             optimizer = torch.optim.Adam(params=[{'params': net.conv3.parameters()},
                                                  {'params': net.conv4.parameters()},
                                                  {'params': net.conv5.parameters()}],
+                                         weight_decay=cfg.weight_decay,
                                          lr=lr)
     assert optimizer is not None
 
