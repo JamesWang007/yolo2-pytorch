@@ -107,6 +107,10 @@ def _process_batch(data):
 
         a = anchor_inds[i]
 
+        # do not evaluate for dontcare
+        if gt_classes[i] == -1:
+            continue
+
         _iou_mask[cell_ind, a, :] = cfg.object_scale
         _ious[cell_ind, a, :] = anchor_ious[a, i]
 
@@ -114,10 +118,8 @@ def _process_batch(data):
         target_boxes[i, 2:4] /= anchors[a]
         _boxes[cell_ind, a, :] = target_boxes[i]
 
-        # do not evaluate for dontcare
-        if gt_classes[i] != -1:
-            _class_mask[cell_ind, a, :] = cfg.class_scale
-            _classes[cell_ind, a, gt_classes[i]] = 1.
+        _class_mask[cell_ind, a, :] = cfg.class_scale
+        _classes[cell_ind, a, gt_classes[i]] = 1.
 
     _boxes[:, :, 2:4] = np.maximum(_boxes[:, :, 2:4], 0.001)
     _boxes[:, :, 2:4] = np.log(_boxes[:, :, 2:4])
