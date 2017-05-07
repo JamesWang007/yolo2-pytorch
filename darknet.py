@@ -109,6 +109,7 @@ def _process_batch(data):
 
         # do not evaluate for dontcare
         if gt_classes[i] == -1:
+            # print(-1)
             continue
 
         _iou_mask[cell_ind, a, :] = cfg.object_scale

@@ -9,7 +9,8 @@ from utils.im_transform import imcv2_recolor
 from utils.im_transform import imcv2_affine_trans
 from utils.yolo import _offset_boxes
 from cfgs import config
-from cfgs import config_voc
+# from cfgs import config_voc
+from cfgs import config_kitti
 
 
 class ImageFileDataset(ImageDataset):
@@ -22,11 +23,12 @@ class ImageFileDataset(ImageDataset):
 
         self.image_list_file = image_list_file
         self.label_list_file = train_labels
-        if imdb_name == 'kitti':
-            self.is_kitti = True
-            self._classes = ('car', 'pedestrian', 'dontcare')
+        self.imdb_name = imdb_name
+        if self.imdb_name == 'kitti':
+            self._classes = config_kitti.label_names
+        elif self.imdb_name == 'dashdam':
+            self._classes = ('car', 'bus', 'motorbike', 'bike', 'person')
         else:
-            self.is_kitti = False
             self._classes = config_voc.label_names
 
         self.load_dataset()
@@ -47,11 +49,7 @@ class ImageFileDataset(ImageDataset):
         with open(self.label_list_file) as f:
             for fi, label_file_name in enumerate(f.readlines()):
                 label_file_name = label_file_name.strip()
-                if self.is_kitti:
-                    data_foramt = 'kitti'
-                else:
-                    data_foramt = ''
-                label_dict = self.parse_label_file(label_file_name, config_voc.label_names, data_foramt)
+                label_dict = self.parse_label_file(label_file_name, config.label_names, self.imdb_name)
                 if not label_dict['has_label']:
                     remove_id_list.append(fi)
                 self._annotations.append(label_dict)
@@ -62,7 +60,8 @@ class ImageFileDataset(ImageDataset):
         assert len(self._image_names) == len(self._annotations)
         self._image_indexes = range(len(self._image_names))
 
-    kitti_voc_label_map = {'Car': 'car', 'Pedestrian': 'person'}
+    kitti_voc_label_replacement = {'Car': 'car', 'Pedestrian': 'person'}
+    dashcam_voc_label_replacement = {'bike': 'bicycle'}
     @staticmethod
     def parse_label_file(label_file_name, label_mapping, dataset_foramt):
         gt_classes = list()
@@ -72,11 +71,16 @@ class ImageFileDataset(ImageDataset):
             for line in label_file.readlines():
                 values = line.strip().split(' ')
                 label = values[0]
+                # try to replace original label name with voc label name
                 if dataset_foramt == 'kitti':
-                    label = ImageFileDataset.kitti_voc_label_map.get(label)
+                    label = ImageFileDataset.kitti_voc_label_replacement.get(label, label)
+                elif dataset_foramt == 'dashcam':
+                    label = ImageFileDataset.dashcam_voc_label_replacement.get(label, label)
+
                 try:
                     label_id = label_mapping.index(label)
                 except ValueError:
+                    # label not exist
                     label_id = -1
                 gt_classes.append(label_id)
                 bbox = [int(float(v)) for v in values[1:]]

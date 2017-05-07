@@ -1,8 +1,15 @@
 import os
-from cfgs.config_voc import *
-from cfgs.exps.kitti_ft_dontcare import *
+# from cfgs.config_voc import *
+from cfgs.config_kitti import *
+from cfgs.exps.kitti_new import *
 # from cfgs.exps.darknet19_exp5 import *
 # from cfgs.exps.voc_adam_exp1 import *
+# from cfgs.exps.dashcam_ft_exp1 import *
+# from cfgs.exps.gtav_new_exp1 import *
+
+
+label_names = label_names
+num_classes = len(label_names)
 
 
 def mkdir(path, max_depth=3):

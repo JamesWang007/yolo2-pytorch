@@ -203,12 +203,11 @@ def draw_detection(im, bboxes, scores, cls_inds, cfg):
     for i, box in enumerate(bboxes):
         cls_indx = cls_inds[i]
 
-        thick = int((h + w) / 300)
         cv2.rectangle(imgcv,
                       (box[0], box[1]), (box[2], box[3]),
-                      colors[cls_indx], thick)
+                      colors[cls_indx], 2)
         mess = '%s: %.3f' % (labels[cls_indx], scores[i])
         cv2.putText(imgcv, mess, (box[0], box[1] - 12),
-                    0, 1e-3 * h, colors[cls_indx], thick // 3)
+                    0, 1e-3 * h, colors[cls_indx], 2)
 
     return imgcv

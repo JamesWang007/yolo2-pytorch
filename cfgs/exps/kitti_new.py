@@ -1,8 +1,8 @@
 import numpy as np
 
-exp_name = 'kitti_ft_dontcare'
+exp_name = 'kitti_new'
 dataset_name = 'kitti'
-pretrained_fname = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
+pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
 
 network_size_rand_period = 10
 inp_size_candidates = [(1024, 320), (1024, 384), (1120, 354), (1120, 384),
@@ -15,8 +15,8 @@ optimizer = 'SGD'  # 'SGD, Adam'
 opt_param = 'all'  # 'all, conv345'
 
 start_step = 0
-lr_epoch = (0, 60)
-lr_val = (1E-6, 1E-7)
+lr_epoch = (0, 60, 90)
+lr_val = (1E-3, 1E-4, 1E-5)
 
 max_epoch = 200
 
@@ -34,8 +34,10 @@ iou_thresh = 0.6
 # dataset
 imdb_train = 'voc_2012_trainval'
 imdb_test = 'voc_2007_test'
-train_images = '/home/cory/yolo2-pytorch/train_data/kitti_train_images.txt'
-train_labels = '/home/cory/yolo2-pytorch/train_data/kitti_train_labels.txt'
-batch_size = 16
-train_batch_size = 16
+train_images = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
+train_labels = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
+val_images = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt'
+val_labels = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_labels.txt'
+batch_size = 8
+train_batch_size = 12
 
