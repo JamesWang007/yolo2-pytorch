@@ -1,6 +1,6 @@
 import numpy as np
 
-exp_name = 'voc0712_trainval_exp4'
+exp_name = 'voc0712_trainval_exp4_fix'
 dataset_name = 'voc'
 pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
 
@@ -35,5 +35,7 @@ imdb_train = 'voc_2012_trainval'
 imdb_test = 'voc_2007_test'
 train_images = '/home/cory/yolo2-pytorch/train_data/voc_train_images.txt'
 train_labels = '/home/cory/yolo2-pytorch/train_data/voc_train_labels.txt'
+val_images = '/home/cory/yolo2-pytorch/train_data/voc/voc_test_images.txt'
+val_labels = '/home/cory/yolo2-pytorch/train_data/voc/voc_test_labels.txt'
 batch_size = 1
 train_batch_size = 32

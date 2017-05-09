@@ -1,7 +1,7 @@
 
 
-all_images_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_images.txt'
-all_labels_file = '/media/cory/54604BF5604BDBFC/Project/KITTI_Dataset/kitti_tracking_gt.txt'
+all_images_file = '/media/cory/c_disk/Project/KITTI_Dataset/kitti_tracking_images.txt'
+all_labels_file = '/media/cory/c_disk/Project/KITTI_Dataset/kitti_tracking_gt.txt'
 
 
 def copy_exclude(filename, outfilename, patterns):
@@ -28,7 +28,7 @@ def copy_include(filename, outfilename, patterns):
                         break
 
 
-copy_exclude(all_images_file, 'kitti_train_images.txt', ['/0001/', '/0019/'])
-copy_exclude(all_labels_file, 'kitti_train_labels.txt', ['/0001/', '/0019/'])
-copy_include(all_images_file, 'kitti_val_images.txt', ['/0001/', '/0019/'])
-copy_include(all_labels_file, 'kitti_val_labels.txt', ['/0001/', '/0019/'])
+copy_exclude(all_images_file, 'kitti/kitti_train_images.txt', ['/0001/', '/0019/'])
+copy_exclude(all_labels_file, 'kitti/kitti_train_labels.txt', ['/0001/', '/0019/'])
+copy_include(all_images_file, 'kitti/kitti_val_images.txt', ['/0001/', '/0019/'])
+copy_include(all_labels_file, 'kitti/kitti_val_labels.txt', ['/0001/', '/0019/'])

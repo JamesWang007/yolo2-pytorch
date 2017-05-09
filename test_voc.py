@@ -123,44 +123,17 @@ def test_ap_exp(model):
 
 
 if __name__ == '__main__':
-    # test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp5/voc0712_trainval_exp5_160.h5')
-    test_ap_exp(cfg.trained_model)
-    # test_ap_exp('/home/cory/yolo2-pytorch/models/training/voc0712_adam_exp1/voc0712_adam_exp1_40.h5')
-    # 0.7186  default (yolo-voc.weights.h5)
-    # 0.6802  epoch_2 ADAM lr-6
-    # 0.6754  epoch_4 ADAM lr-6
-    # 0.6685  epoch_6 ADAM lr-6
-    # 0.6682  epoch_8 ADAM lr-6
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug4/voc0712_trainval_ft_debug4_1.h5'
+    # model = cfg.trained_model
+    test_ap_exp(model)
 
-    # 0.7176  epoch_1 SGD lr-6
-    # 0.7153  epoch_2
-    # 0.7141  epoch_4
-    # 0.7121  epoch_6
-
-    # 0.4531  epoch_1 ADAM lr-3 New conv3_4_5
-    # 0.4778  epoch_2
-    # 0.4973  epoch_3
-    # 0.5186  epoch_8
-    # 0.5434  epoch_10
-    # 0.5507  epoch_11
-    # 0.5443  epoch_12
-    # 0.5243  epoch_15
-    # 0.5180  epoch_20
-    # 0.5311  epoch_22
-    # 0.5510  epoch_25
-    # 0.5558  epoch_27
-    # 0.5499  epoch_30
-    # 0.5332  epoch_32
-    # 0.5573  epoch_36
-    # 0.5550  epoch_52
-    # 0.5719  epoch_54
-    # 0.5580  epoch_56
-    # 0.5621  epoch_58
-    # 0.5489  epoch_62
+    # 0.6479, my trained 200 epoch
 
 
-    # exp2, SGD lr=1E-3
-    # 0.0594  0
-    # 0.1241  1
-    # 0.1820  2
-    # 0.6354  91
+
+
+
+
+
+
+

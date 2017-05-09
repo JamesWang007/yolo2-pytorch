@@ -34,8 +34,10 @@ iou_thresh = 0.6
 # dataset
 imdb_train = 'voc_2012_trainval'
 imdb_test = 'voc_2007_test'
-train_images = '/home/cory/yolo2-pytorch/train_data/kitti_train_images.txt'
-train_labels = '/home/cory/yolo2-pytorch/train_data/kitti_train_labels.txt'
+train_images = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
+train_labels = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
+val_images = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt'
+val_labels = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_labels.txt'
 batch_size = 12
 train_batch_size = 12
 

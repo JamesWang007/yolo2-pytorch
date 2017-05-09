@@ -1,9 +1,9 @@
 import os
-# from cfgs.config_voc import *
-from cfgs.config_kitti import *
-from cfgs.exps.kitti_new import *
+from cfgs.config_voc import *
+# from cfgs.config_kitti import *
+from cfgs.exps.darknet19_ft import *
 # from cfgs.exps.darknet19_exp5 import *
-# from cfgs.exps.voc_adam_exp1 import *
+# from cfgs.exps.kitti_ft_exp2 import *
 # from cfgs.exps.dashcam_ft_exp1 import *
 # from cfgs.exps.gtav_new_exp1 import *
 
@@ -19,30 +19,6 @@ def mkdir(path, max_depth=3):
 
     if not os.path.exists(path):
         os.mkdir(path)
-
-
-# input and output size
-############################
-# inp_size = np.array([1248, 352], dtype=np.int)   # w, h
-# inp_size = np.array([608, 608], dtype=np.int)
-# inp_size = np.array([512, 288], dtype=np.int)
-# inp_size = np.array([1280, 736], dtype=np.int)
-# inp_size = np.array([416, 416], dtype=np.int)
-# out_size = inp_size / 32
-
-
-# for display
-############################
-def _to_color(indx, base):
-    """ return (b, r, g) tuple"""
-    base2 = base * base
-    b = 2 - indx / base2
-    r = 2 - (indx % base2) / base
-    g = 2 - (indx % base2) % base
-    return b * 127, r * 127, g * 127
-
-base = int(np.ceil(pow(num_classes, 1. / 3)))
-colors = [_to_color(x, base) for x in range(num_classes)]
 
 
 # detection config

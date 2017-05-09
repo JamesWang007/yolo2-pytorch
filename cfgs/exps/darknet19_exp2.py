@@ -1,8 +1,9 @@
 import numpy as np
 
-exp_name = 'voc0712_trainval_exp2'
+exp_name = 'voc0712_trainval_exp2_debug'
 dataset_name = 'voc'
-pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
+# pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
+pretrained_fname = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
 
 network_size_rand_period = 10
 inp_size_candidates = [(320, 320), (352, 352), (384, 384), (416, 416), (448, 448),
@@ -33,7 +34,9 @@ iou_thresh = 0.6
 # dataset
 imdb_train = 'voc_2012_trainval'
 imdb_test = 'voc_2007_test'
-train_images = '/home/cory/yolo2-pytorch/train_data/voc_train_images.txt'
-train_labels = '/home/cory/yolo2-pytorch/train_data/voc_train_labels.txt'
+train_images = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_images.txt'
+train_labels = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt'
+val_images = '/home/cory/yolo2-pytorch/train_data/voc/voc_test_images.txt'
+val_labels = '/home/cory/yolo2-pytorch/train_data/voc/voc_test_labels.txt'
 batch_size = 1
 train_batch_size = 16

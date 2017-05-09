@@ -77,7 +77,7 @@ def _process_batch(data):
     best_ious = np.max(ious, axis=1).reshape(_iou_mask.shape)
     _iou_mask[best_ious <= cfg.iou_thresh] = cfg.noobject_scale
 
-    # locate the cell of each gt_boxe
+    # locate the cell of each gt_boxes
     cell_w = float(inp_size[0]) / W
     cell_h = float(inp_size[1]) / H
     cx = (gt_boxes_b[:, 0] + gt_boxes_b[:, 2]) * 0.5 / cell_w
@@ -92,6 +92,7 @@ def _process_batch(data):
     target_boxes[:, 3] = (gt_boxes_b[:, 3] - gt_boxes_b[:, 1]) / inp_size[1] * out_size[1]  # th
 
     # for each gt boxes, match the best anchor
+    # gt_boxes_resize = [(xmin, ymin, xmax, ymax)] unit: cell px
     gt_boxes_resize = np.copy(gt_boxes_b)
     gt_boxes_resize[:, 0::2] *= (out_size[0] / float(inp_size[0]))
     gt_boxes_resize[:, 1::2] *= (out_size[1] / float(inp_size[1]))
@@ -117,6 +118,7 @@ def _process_batch(data):
         _iou_mask[cell_ind, a, :] = cfg.object_scale
         # _ious[cell_ind, a, :] = anchor_ious[a, i]
         _ious[cell_ind, a, :] = ious_reshaped[cell_ind, a, i]
+        # print('anchor_iou {:.4f} vs  real_iou {:.4f}'.format(anchor_ious[a, i], ious_reshaped[cell_ind, a, i]))
 
         _box_mask[cell_ind, a, :] = cfg.coord_scale
         target_boxes[i, 2:4] /= anchors[a]
@@ -125,9 +127,10 @@ def _process_batch(data):
         _class_mask[cell_ind, a, :] = cfg.class_scale
         _classes[cell_ind, a, gt_classes[i]] = 1.
 
-    _boxes[:, :, 2:4] = np.maximum(_boxes[:, :, 2:4], 0.001)
-    _boxes[:, :, 2:4] = np.log(_boxes[:, :, 2:4])
+    # _boxes[:, :, 2:4] = np.maximum(_boxes[:, :, 2:4], 0.001)
+    # _boxes[:, :, 2:4] = np.log(_boxes[:, :, 2:4])
 
+    # _boxes = (sig(tx), sig(ty), exp(tw), exp(th))
     return _boxes, _ious, _classes, _box_mask, _iou_mask, _class_mask
 
 
@@ -180,14 +183,10 @@ class Darknet19(nn.Module):
 
     def forward(self, im_data, gt_boxes=None, gt_classes=None, dontcare=None, inp_size=None):
         conv1s = self.conv1s(im_data)
-
         conv2 = self.conv2(conv1s)
-
         conv3 = self.conv3(conv2)
-
         conv1s_reorg = self.reorg(conv1s)
         cat_1_3 = torch.cat([conv1s_reorg, conv3], 1)
-
         conv4 = self.conv4(cat_1_3)
         conv5 = self.conv5(conv4)   # batch_size, out_channels, h, w
 
@@ -199,21 +198,20 @@ class Darknet19(nn.Module):
 
         # tx, ty, tw, th, to -> sig(tx), sig(ty), exp(tw), exp(th), sig(to)
         xy_pred = F.sigmoid(conv5_reshaped[:, :, :, 0:2])
-
         wh_pred = conv5_reshaped[:, :, :, 2:4]
         wh_pred_exp = torch.exp(wh_pred)
         bbox_pred = torch.cat([xy_pred, wh_pred_exp], 3)
-
         iou_pred = F.sigmoid(conv5_reshaped[:, :, :, 4:5])
 
         score_pred = conv5_reshaped[:, :, :, 5:].contiguous()
         prob_pred = F.softmax(score_pred.view(-1, score_pred.size()[-1])).view_as(score_pred)
 
-        '''p0 = score_pred[0].data.cpu().numpy()
-        i0 = iou_pred[0].data.cpu().numpy()
-        # print('score_pred[0]', sp0, sum(sp0.ravel()))
-        print('p   > 0.5', np.count_nonzero(p0 > 0.5))
-        print('iou > 0.5', np.where(i0 > 0.5))'''
+        debug = False
+        if debug:
+            bbox_pred_np = bbox_pred.data.cpu().numpy()
+            iou_pred_np = iou_pred.data.cpu().numpy()
+            prob_pred_np = prob_pred.data.cpu().numpy()
+            print(np.max(bbox_pred_np), np.max(iou_pred_np), np.max(prob_pred_np))
 
         # for training
         if self.training:
@@ -233,30 +231,12 @@ class Darknet19(nn.Module):
             # _boxes[:, :, :, 2:4] = torch.log(_boxes[:, :, :, 2:4])
             box_mask = box_mask.expand_as(_boxes)
 
-            '''np_class = _classes.data.cpu().numpy()
-            eval_idx = np.where(np_class != 0)
-            print(eval_idx)'''
-
-            # self.bbox_loss = torch.sum(torch.pow(_boxes - bbox_pred, 2) * box_mask) / num_boxes
             self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred * box_mask, _boxes * box_mask) / num_boxes
-
-            bbox = (bbox_pred * box_mask).data.cpu().numpy()
-            bbox_active = bbox[np.where(bbox > 0.1)]
-            bbox_gt = (_boxes * box_mask).data.cpu().numpy()
-            bbox_gt_active = bbox_gt[np.where(bbox_gt > 0.1)]
-
-            # self.iou_loss = torch.sum(torch.pow(_ious - iou_pred, 2) * iou_mask) / num_boxes
             self.iou_loss = nn.MSELoss(size_average=False)(iou_pred * iou_mask, _ious * iou_mask) / num_boxes
 
             class_mask = class_mask.expand_as(prob_pred)
-            # self.cls_loss = torch.sum(torch.pow(_classes - prob_pred, 2) * class_mask) / num_boxes
             self.cls_loss = nn.MSELoss(size_average=False)(prob_pred * class_mask, _classes * class_mask) / num_boxes
 
-            # idx = np.where(class_mask.data.cpu().numpy() == 1.0)
-            # print(idx)
-
-        wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
-        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
         return bbox_pred, iou_pred, prob_pred
 
     def feed_feature(self, feature, layer, gt_boxes=None, gt_classes=None, dontcare=None):
@@ -300,8 +280,9 @@ class Darknet19(nn.Module):
             # _boxes[:, :, :, 2:4] = torch.log(_boxes[:, :, :, 2:4])
             box_mask = box_mask.expand_as(_boxes)
             # self.bbox_loss = torch.sum(torch.pow(_boxes - bbox_pred, 2) * box_mask) / num_boxes
-            bbox_pred_log = torch.cat([xy_pred, wh_pred], 3)
-            self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred_log * box_mask, _boxes * box_mask) / num_boxes
+            # bbox_pred_log = torch.cat([xy_pred, wh_pred], 3)
+            # self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred_log * box_mask, _boxes * box_mask) / num_boxes
+            self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred * box_mask, _boxes * box_mask) / num_boxes
 
             # self.iou_loss = torch.sum(torch.pow(_ious - iou_pred, 2) * iou_mask) / num_boxes
             self.iou_loss = nn.MSELoss(size_average=False)(iou_pred * iou_mask, _ious * iou_mask) / num_boxes
@@ -310,8 +291,8 @@ class Darknet19(nn.Module):
             # self.cls_loss = torch.sum(torch.pow(_classes - prob_pred, 2) * class_mask) / num_boxes
             self.cls_loss = nn.MSELoss(size_average=False)(prob_pred * class_mask, _classes * class_mask) / num_boxes
 
-        # wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
-        # bbox_pred = torch.cat([xy_pred, wh_pred], 3)
+        wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
+        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
 
         return bbox_pred, iou_pred, prob_pred
 

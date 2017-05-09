@@ -20,7 +20,7 @@ classes = ["aeroplane", "bicycle", "bird", "boat", "bottle", "bus", "car", "cat"
 
 def convert_annotation(year, image_id):
     in_file = open(VOC_PATH + 'VOCdevkit/VOC%s/Annotations/%s.xml' % (year, image_id))
-    out_file = open(VOC_PATH + 'VOCdevkit/VOC%s/labels/%s.txt' % (year, image_id), 'w')
+    out_file = open(VOC_PATH + 'VOCdevkit/VOC%s/labels_px/%s.txt' % (year, image_id), 'w')
     tree = ET.parse(in_file)
     root = tree.getroot()
     size = root.find('size')
@@ -41,8 +41,8 @@ def convert_annotation(year, image_id):
 
 def gen_file_list():
     for year, image_set in sets:
-        if not os.path.exists(VOC_PATH + 'VOCdevkit/VOC%s/labels/' % (year)):
-            os.makedirs(VOC_PATH + 'VOCdevkit/VOC%s/labels/' % (year))
+        if not os.path.exists(VOC_PATH + 'VOCdevkit/VOC%s/labels_px/' % (year)):
+            os.makedirs(VOC_PATH + 'VOCdevkit/VOC%s/labels_px/' % (year))
         image_ids = open(VOC_PATH + 'VOCdevkit/VOC%s/ImageSets/Main/%s.txt' % (year, image_set)).read().strip().split()
         list_file = open(VOC_PATH + '%s_%s.txt' % (year, image_set), 'w')
         for image_id in image_ids:
@@ -56,10 +56,10 @@ all_labels = VOC_PATH + 'VOC0712_all_labels.txt'
 voc07_prefix = VOC_PATH + 'VOCdevkit/VOC2007/'
 voc12_prefix = VOC_PATH + 'VOCdevkit/VOC2012/'
 
-out_train_image_file_name = 'voc_train_images.txt'
-out_train_label_file_name = 'voc_train_labels.txt'
-out_test_image_file_name = 'voc_test_images.txt'
-out_test_label_file_name = 'voc_test_labels.txt'
+out_train_image_file_name = 'voc/voc_train_images.txt'
+out_train_label_file_name = 'voc/voc_train_labels.txt'
+out_test_image_file_name = 'voc/voc_test_images.txt'
+out_test_label_file_name = 'voc/voc_test_labels.txt'
 
 
 def fid_to_fullpath(fid):
@@ -68,7 +68,7 @@ def fid_to_fullpath(fid):
     else:
         prefix = voc12_prefix
     full_image_path = prefix + 'JPEGImages/' + fid + '.jpg'
-    full_label_path = prefix + 'labels/' + fid + '.txt'
+    full_label_path = prefix + 'labels_px/' + fid + '.txt'
     return full_image_path, full_label_path
 
 # open terminal and cd to VOC path
@@ -83,7 +83,7 @@ def fid_to_fullpath(fid):
 def gen_voc_train_data():
     subprocess.call('cd ' + VOC_PATH + ' && cat 2007_train.txt 2007_val.txt 2012_*.txt > ' + all_images,
                     shell=True)
-    subprocess.call('cd ' + VOC_PATH + ' && realpath VOCdevkit/*/labels/*.txt > ' + all_labels,
+    subprocess.call('cd ' + VOC_PATH + ' && realpath VOCdevkit/*/labels_px/*.txt > ' + all_labels,
                     shell=True)
 
     all_image_file = open(all_images)

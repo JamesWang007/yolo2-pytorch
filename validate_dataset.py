@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import sys
 
 import cfgs.config as cfg
 import utils.network as net_utils
@@ -96,8 +97,9 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
         bbox_loss /= cnt
         iou_loss /= cnt
         cls_loss /= cnt
-        print('epoch: %d, step: %d, loss: %.3f, bbox_loss: %.3f, iou_loss: %.3f, cls_loss: %.3f' % (
-            imdb.epoch, step, train_loss, bbox_loss, iou_loss, cls_loss))
+        print()
+        print('loss: %.3f, bbox_loss: %.3f, iou_loss: %.3f, cls_loss: %.3f' %
+              (train_loss, bbox_loss, iou_loss, cls_loss))
 
         train_loss = 0
         bbox_loss, iou_loss, cls_loss = 0., 0., 0.
@@ -115,5 +117,9 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
     train_loss += net.loss.data.cpu().numpy()[0]
     cnt += 1
 
+    if step % cfg.disp_interval == 0:
+        progress_in_epoch = (step % imdb.batch_per_epoch) / imdb.batch_per_epoch
+        print('%.2f%%' % (progress_in_epoch * 100), end=' ')
+        sys.stdout.flush()
 
 imdb.close()

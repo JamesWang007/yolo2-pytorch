@@ -79,16 +79,18 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp2/voc0712_trainval_exp2_160.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_exp2_fixbug/voc0712_trainval_exp2_fixbug_90.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp2/kitti_ft_exp2_1.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug2/voc0712_trainval_ft_debug2_6.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp1/kitti_ft_exp1_150.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_dontcare/kitti_ft_dontcare_68.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/dashcam_ft_exp1/dashcam_ft_exp1_6.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new/kitti_new_174.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new/kitti_new_174.h5'
     thresh = 0.5
     use_kitti = True
     image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
     # image_dir = '/home/cory/cedl/home/cory/yolo2-pytorch/models/training/dashcam_ft_exp1/dashcam_ft_exp1_6.h5/dashcam/images/000900'
-    # image_dir = '/home/cory/GTAV/VOCdevkit/VOC2012/JPEGImages'
+    # image_dir = '/home/cory/VOC/VOCdevkit/VOC2012/JPEGImages'
     # image_dir = '/home/cory/cedl/GTAV'
 
     net = Darknet19()

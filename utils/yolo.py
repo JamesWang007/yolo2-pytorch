@@ -4,6 +4,7 @@ from .im_transform import imcv2_affine_trans, imcv2_recolor
 # from box import BoundBox, box_iou, prob_compare
 from utils.nms_wrapper import nms
 from utils.cython_yolo import yolo_to_bbox
+import utils.vis_util
 
 
 def clip_boxes(boxes, im_shape):
@@ -195,7 +196,7 @@ def get_bbox_targets(images, gt_boxes, cls_inds, dontcares, cfg):
 
 def draw_detection(im, bboxes, scores, cls_inds, cfg):
     # draw imagelabel_names
-    colors = cfg.colors
+    colors = utils.vis_util.colors
     labels = cfg.label_names
 
     imgcv = np.copy(im)

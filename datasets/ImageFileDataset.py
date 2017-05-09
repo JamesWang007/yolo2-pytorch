@@ -9,8 +9,8 @@ from utils.im_transform import imcv2_recolor
 from utils.im_transform import imcv2_affine_trans
 from utils.yolo import _offset_boxes
 from cfgs import config
-# from cfgs import config_voc
-from cfgs import config_kitti
+from cfgs import config_voc
+# from cfgs import config_kitti
 
 
 class ImageFileDataset(ImageDataset):
