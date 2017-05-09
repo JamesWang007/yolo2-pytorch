@@ -2,12 +2,12 @@ import numpy as np
 
 exp_name = 'voc0712_trainval_ft_debug5'
 dataset_name = 'voc'
-pretrained_fname = '/home/cory/yolo2-pytorch/models/voc0712_trainval_exp4_200.h5'
-# pretrained_fname = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
+# pretrained_fname = '/home/cory/yolo2-pytorch/models/voc0712_trainval_exp4_200.h5'
+pretrained_fname = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
 
 network_size_rand_period = 10
 inp_size_candidates = [(320, 320), (352, 352), (384, 384), (416, 416), (448, 448),
-                       (480, 480), (512, 512), (544, 544), (576, 576), (608, 608)]
+                       (480, 480), (512, 512), (544, 544)]
 inp_size = np.array([416, 416], dtype=np.int)
 out_size = inp_size / 32
 

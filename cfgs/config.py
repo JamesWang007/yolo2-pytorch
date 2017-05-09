@@ -1,9 +1,10 @@
 import os
 from cfgs.config_voc import *
 # from cfgs.config_kitti import *
-from cfgs.exps.darknet19_ft import *
+# from cfgs.exps.darknet19_ft import *
 # from cfgs.exps.darknet19_exp5 import *
 # from cfgs.exps.kitti_ft_exp2 import *
+from cfgs.exps.darknet19_ft import *
 # from cfgs.exps.dashcam_ft_exp1 import *
 # from cfgs.exps.gtav_new_exp1 import *
 

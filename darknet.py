@@ -107,7 +107,6 @@ def _process_batch(data):
         if cell_ind >= hw or cell_ind < 0:
             print('warning: cell_ind >= hw', cell_ind, hw)
             continue
-
         a = anchor_inds[i]
 
         # do not evaluate for dontcare
@@ -177,8 +176,6 @@ class Darknet19(nn.Module):
 
     @property
     def loss(self):
-        # DEBUG_LOSS
-        # return self.bbox_loss + self.cls_loss
         return self.bbox_loss + self.iou_loss + self.cls_loss
 
     def forward(self, im_data, gt_boxes=None, gt_classes=None, dontcare=None, inp_size=None):
@@ -198,9 +195,8 @@ class Darknet19(nn.Module):
 
         # tx, ty, tw, th, to -> sig(tx), sig(ty), exp(tw), exp(th), sig(to)
         xy_pred = F.sigmoid(conv5_reshaped[:, :, :, 0:2])
-        wh_pred = conv5_reshaped[:, :, :, 2:4]
-        wh_pred_exp = torch.exp(wh_pred)
-        bbox_pred = torch.cat([xy_pred, wh_pred_exp], 3)
+        wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
+        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
         iou_pred = F.sigmoid(conv5_reshaped[:, :, :, 4:5])
 
         score_pred = conv5_reshaped[:, :, :, 5:].contiguous()

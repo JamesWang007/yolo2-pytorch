@@ -123,11 +123,22 @@ def test_ap_exp(model):
 
 
 if __name__ == '__main__':
-    model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug4/voc0712_trainval_ft_debug4_1.h5'
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug5/voc0712_trainval_ft_debug5_38.h5'
     # model = cfg.trained_model
     test_ap_exp(model)
 
-    # 0.6479, my trained 200 epoch
+    # 0.6479  my trained 200 epoch
+    # 0.6724  epoch 10
+    # 0.6762  epoch 19
+    # 0.6742  epoch 20
+    # 0.6754  epoch 24
+    # 0.6763  epoch 27
+    # 0.6788  epoch 31
+    # 0.6823  epoch 38
+
+    # 0.7221  pre-trained
+    # 0.7174  epoch 1
+    # 0.7105  epoch 12
 
 
 

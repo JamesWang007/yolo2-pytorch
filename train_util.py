@@ -20,6 +20,7 @@ def get_optimizer(cfg, net, epoch):
             optimizer = torch.optim.SGD(params=net.parameters(),
                                         momentum=cfg.momentum,
                                         weight_decay=cfg.weight_decay,
+                                        nesterov=True,
                                         lr=lr)
         elif cfg.opt_param == 'conv345':
             optimizer = torch.optim.SGD(params=[{'params': net.conv3.parameters()},
@@ -27,6 +28,7 @@ def get_optimizer(cfg, net, epoch):
                                                 {'params': net.conv5.parameters()}],
                                         momentum=cfg.momentum,
                                         weight_decay=cfg.weight_decay,
+                                        nesterov=True,
                                         lr=lr)
     elif cfg.optimizer == 'Adam':
         if cfg.opt_param == 'all':
