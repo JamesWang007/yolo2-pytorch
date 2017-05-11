@@ -4,30 +4,27 @@ import numpy as np
 import cv2
 
 from datasets.imdb import ImageDataset
-from datasets.voc_eval import voc_eval
 from utils.im_transform import imcv2_recolor
 from utils.im_transform import imcv2_affine_trans
 from utils.yolo import _offset_boxes
-from cfgs.config_v2 import cfg
 
 
 class ImageFileDataset(ImageDataset):
-    def __init__(self, imdb_name, datadir, image_list_file, train_labels,
-                 batch_size, im_processor, processes=2, shuffle=True, dst_size=None):
-        super(ImageFileDataset, self).__init__(imdb_name, datadir, batch_size, im_processor, processes, shuffle, dst_size)
-
+    def __init__(self, cfg, im_processor, processes=2, shuffle=True, dst_size=None, mode='train'):
+        super(ImageFileDataset, self).__init__(cfg['dataset_name'], '', cfg['train_batch_size'],
+                                               im_processor, processes, shuffle, dst_size)
+        self.cfg = cfg
         self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
         self.dst_size = dst_size
-
-        self.image_list_file = image_list_file
-        self.label_list_file = train_labels
-        self.imdb_name = imdb_name
-        if self.imdb_name == 'kitti':
-            self._classes = cfg['label_names']
-        elif self.imdb_name == 'dashdam':
-            self._classes = ('car', 'bus', 'motorbike', 'bike', 'person')
+        if mode == 'train':
+            self.image_list_file = cfg['train_images']
+            self.label_list_file = cfg['train_labels']
         else:
-            self._classes = cfg['label_names']
+            self.image_list_file = cfg['val_images']
+            self.label_list_file = cfg['val_labels']
+        self.imdb_name = cfg['dataset_name']
+        # dashcam self._classes = ('car', 'bus', 'motorbike', 'bike', 'person')
+        self._classes = cfg['label_names']
 
         self.load_dataset()
 
@@ -47,7 +44,7 @@ class ImageFileDataset(ImageDataset):
         with open(self.label_list_file) as f:
             for fi, label_file_name in enumerate(f.readlines()):
                 label_file_name = label_file_name.strip()
-                label_dict = self.parse_label_file(label_file_name, cfg['label_names'], self.imdb_name)
+                label_dict = self.parse_label_file(label_file_name, self.cfg['label_names'], self.imdb_name)
                 if not label_dict['has_label']:
                     remove_id_list.append(fi)
                 self._annotations.append(label_dict)
@@ -71,15 +68,15 @@ class ImageFileDataset(ImageDataset):
                 values = line.strip().split(' ')
                 label = values[0]
                 # try to replace original label name with voc label name
-                if dataset_foramt == 'kitti':
+                '''if dataset_foramt == 'kitti':
                     label = ImageFileDataset.kitti_voc_label_replacement.get(label, label)
                 elif dataset_foramt == 'dashcam':
-                    label = ImageFileDataset.dashcam_voc_label_replacement.get(label, label)
+                    label = ImageFileDataset.dashcam_voc_label_replacement.get(label, label)'''
 
                 try:
                     label_id = label_mapping.index(label)
                 except ValueError:
-                    # label not exist
+                    # label not exist, ignore it
                     label_id = -1
                 gt_classes.append(label_id)
                 bbox = [int(float(v)) for v in values[1:]]

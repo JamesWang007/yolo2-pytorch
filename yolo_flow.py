@@ -5,6 +5,8 @@ import numpy as np
 import cv2
 import torch
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 import cfgs.config as cfg
 import utils.network as net_utils
 import utils.yolo as yolo_utils
@@ -31,16 +33,17 @@ def detection_objects(bboxes, scores, cls_inds):
     return objects
 
 
-def save_as_kitti_format(frame_id, det_obj, kitti_filename):
+def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
     # 0 -1 car 0 0 0 1078 142 1126 164 0 0 0 0 0 0 0.415537
     with open(kitti_filename, 'a') as file:
         for det in det_obj:
             bbox = det[0]
             score = det[1]
             label = det[2]
-            if label != 'car' and label != 'person':
-                continue
-            label = label.replace('person', 'pedestrian')
+            if src_label == 'voc':
+                if label != 'car' and label != 'person':
+                    continue
+                label = label.replace('person', 'pedestrian')
             line_str = '{:d} -1 {:s} 0 0 0 {:d} {:d} {:d} {:d} 0 0 0 0 0 0 {:.4f}\n' \
                 .format(frame_id, label, bbox[0], bbox[1], bbox[2], bbox[3], score)
             # print(line_str)
@@ -82,10 +85,11 @@ def main():
     # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_my/kitti_ft_exp3_my_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_new/kitti_ft_exp3_new_20.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_new/kitti_ft_exp3_new_40.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_5.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
     # image_dir = '/home/cory/cedl/home/cory/yolo2-pytorch/models/training/dashcam_ft_exp1/dashcam_ft_exp1_6.h5/dashcam/images/000900'
     # image_dir = '/home/cory/VOC/VOCdevkit/VOC2012/JPEGImages'
     # image_dir = '/home/cory/cedl/GTAV'
@@ -162,7 +166,7 @@ def main():
 
         bboxes, scores, cls_inds = yolo_utils.postprocess(bbox_pred, iou_pred, prob_pred, image.shape, cfg, thresh)
         det_obj = detection_objects(bboxes, scores, cls_inds)
-        save_as_kitti_format(i, det_obj, kitti_filename)
+        save_as_kitti_format(i, det_obj, kitti_filename, src_label='kitti')
 
         im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
 

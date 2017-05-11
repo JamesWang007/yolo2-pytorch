@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+# trained model
+h5_fname: /home/cory/yolo2-pytorch/data/darknet19.weights.npz
+
+# kitti
+label_names: [Car, Van, Truck, Tram, Pedestrian, Person, Cyclist]
+num_classes: 7
+
+# YOLO priors
+anchors: [[1.08, 1.19], [3.42, 4.41], [6.63, 11.38], [9.42, 5.11], [16.62, 10.52]]
+num_anchors: 5

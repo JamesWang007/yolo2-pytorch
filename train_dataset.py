@@ -3,6 +3,7 @@ import os
 import numpy as np
 
 import cfgs.config as cfg
+
 import utils.network as net_utils
 from darknet import Darknet19
 from datasets.ImageFileDataset import ImageFileDataset

@@ -1,8 +1,7 @@
 import os
-
 import numpy as np
 
-from cfgs.config_v2 import cfg
+from cfgs.config_v2 import add_cfg
 
 import utils.network as net_utils
 from darknet_v2 import Darknet19
@@ -10,27 +9,27 @@ from datasets.ImageFileDataset_v2 import ImageFileDataset
 from train_util_v2 import *
 from utils.timer import Timer
 
-try:
-    from pycrayon import CrayonClient
-except ImportError:
-    CrayonClient = None
+dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_1.yaml'
+
+cfg = dict()
+# add_cfg(cfg, '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml')
+add_cfg(cfg, dataset_yaml)
+add_cfg(cfg, exp_yaml)
 
 # data loader
-imdb = ImageFileDataset(cfg['dataset_name'], '',
-                        cfg['train_images'],
-                        cfg['train_labels'],
-                        cfg['train_batch_size'], ImageFileDataset.preprocess_train,
+imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
                         processes=4, shuffle=True, dst_size=None)
 
 print('imdb load data succeeded')
-net = Darknet19()
+net = Darknet19(cfg)
 
 # CUDA_VISIBLE_DEVICES=1
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 os.makedirs(cfg['train_output_dir'], exist_ok=True)
 try:
-    ckp = open(cfg['check_point_file'])
+    ckp = open(cfg['train_output_dir'] + '/check_point.txt')
     ckp_epoch = int(ckp.readlines()[0])
     use_model = os.path.join(cfg['train_output_dir'], cfg['exp_name'] + '_' + str(ckp_epoch) + '.h5')
 except IOError:
@@ -90,7 +89,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.ba
         print('save model: {}'.format(save_name))
 
         # update check_point file
-        ckp = open(os.path.join(cfg['check_point_file']), 'w')
+        ckp = open(os.path.join(cfg['train_output_dir'], 'check_point.txt'), 'w')
         ckp.write(str(imdb.epoch))
         ckp.close()
 
@@ -124,7 +123,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.ba
         print('epoch: %d, step: %d (%.2f %%),'
               'loss: %.3f, bbox_loss: %.3f, iou_loss: %.3f, cls_loss: %.3f (%.2f s/batch)' % (
                   imdb.epoch, step, progress_in_epoch * 100, train_loss, bbox_loss, iou_loss, cls_loss, duration))
-        with open(cfg['log_file'], 'a+') as log:
+        with open(cfg['train_output_dir'] + '/train.log', 'a+') as log:
             log.write('%d, %d, %.3f, %.3f, %.3f, %.3f, %.2f\n' % (
                 imdb.epoch, step, train_loss, bbox_loss, iou_loss, cls_loss, duration))
 

@@ -59,9 +59,32 @@ def save_net(fname, net):
         h5f.create_dataset(k, data=v.cpu().numpy())
 
 
+def load_from_npz(net, fname, num_conv=None):
+    dest_src = {'conv.weight': 'kernel', 'conv.bias': 'biases',
+                'bn.weight': 'gamma', 'bn.bias': 'biases',
+                'bn.running_mean': 'moving_mean', 'bn.running_var': 'moving_variance'}
+    params = np.load(fname)
+    own_dict = net.state_dict()
+    keys = list(own_dict.keys())
+
+    for i, start in enumerate(range(0, len(keys), 5)):
+        if num_conv is not None and i >= num_conv:
+            break
+        end = min(start+5, len(keys))
+        for key in keys[start:end]:
+            list_key = key.split('.')
+            ptype = dest_src['{}.{}'.format(list_key[-2], list_key[-1])]
+            src_key = '{}-convolutional/{}:0'.format(i, ptype)
+            # print('src_key', src_key, own_dict[key].size(), params[src_key].shape)
+            param = torch.from_numpy(params[src_key])
+            if ptype == 'kernel':
+                param = param.permute(3, 2, 0, 1)
+            own_dict[key].copy_(param)
+
+
 def load_net(fname, net):
     if fname.find('.npz') >= 0:
-        net.load_from_npz(fname, num_conv=18)
+        load_from_npz(net, fname, num_conv=18)
     else:
         h5f = h5py.File(fname, mode='r')
         for k, v in net.state_dict().items():

@@ -127,7 +127,7 @@ def test_ap_exp(model):
 if __name__ == '__main__':
     # model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
     # model = cfg.trained_model
-    model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_1.h5'
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_5.h5'
     test_ap_exp(model)
 
     # 0.6479  my trained 200 epoch
@@ -143,8 +143,11 @@ if __name__ == '__main__':
     # 0.6811  epoch 46
 
     # 0.7221  pre-trained
-    # 0.7174  epoch 1
-    # 0.7105  epoch 12
+    # 0.7235  ft 1
+    # 0.7227  ft 2
+    # 0.7173  ft 5
+    # 0.7160  ft 10
+    # 0.7143  ft 28
 
     # voc0712_new
     # 0.6486  97

@@ -2,40 +2,44 @@ import os
 import numpy as np
 import sys
 
-import cfgs.config as cfg
-import utils.network as net_utils
-from darknet import Darknet19
-from datasets.ImageFileDataset import ImageFileDataset
-from utils.timer import Timer
-from train_util import *
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
-try:
-    from pycrayon import CrayonClient
-except ImportError:
-    CrayonClient = None
+
+from cfgs.config_v2 import add_cfg
+import utils.network as net_utils
+from darknet_v2 import Darknet19
+from datasets.ImageFileDataset_v2 import ImageFileDataset
+from utils.timer import Timer
+from train_util_v2 import *
+
+
+dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+
+cfg = dict()
+# add_cfg(cfg, '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml')
+add_cfg(cfg, dataset_yaml)
+add_cfg(cfg, exp_yaml)
 
 # data loader
-imdb = ImageFileDataset(cfg.dataset_name, '',
-                        cfg.val_images,
-                        cfg.val_labels,
-                        cfg.batch_size, ImageFileDataset.preprocess_train,
-                        processes=4, shuffle=True, dst_size=None)
+imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
+                        processes=4, shuffle=True, dst_size=None, mode='val')
 
 print('imdb load data succeeded')
-net = Darknet19()
+net = Darknet19(cfg)
 
 # CUDA_VISIBLE_DEVICES=1
 
-os.makedirs(cfg.train_output_dir, exist_ok=True)
+os.makedirs(cfg['train_output_dir'], exist_ok=True)
 try:
-    ckp = open(cfg.check_point_file)
+    ckp = open(cfg['train_output_dir'] + '/check_point.txt')
     ckp_epoch = int(ckp.readlines()[0])
-    # ckp_epoch = 20
+    ckp_epoch = 10
     # raise IOError
-    use_model = os.path.join(cfg.train_output_dir, cfg.exp_name + '_' + str(ckp_epoch) + '.h5')
+    use_model = os.path.join(cfg['train_output_dir'], cfg['exp_name'] + '_' + str(ckp_epoch) + '.h5')
 except IOError:
     ckp_epoch = 0
-    use_model = cfg.pretrained_model
+    use_model = cfg['pretrained_model']
 
 net_utils.load_net(use_model, net)
 
@@ -48,33 +52,17 @@ imdb.epoch = start_epoch
 
 # show training parameters
 print('-------------------------------')
+print('gpu_id', os.environ.get('CUDA_VISIBLE_DEVICES'))
 print('use_model', use_model)
-print('exp_name', cfg.exp_name)
-print('optimizer', cfg.optimizer)
-print('opt_param', cfg.opt_param)
-print('train_batch_size', cfg.train_batch_size)
+print('exp_name', cfg['exp_name'])
+print('dataset', cfg['dataset_name'])
+print('optimizer', cfg['optimizer'])
+print('opt_param', cfg['opt_param'])
+print('train_batch_size', cfg['train_batch_size'])
 print('start_epoch', start_epoch)
 print('lr', lookup_lr(cfg, start_epoch))
 print('-------------------------------')
 
-# tensorboad
-use_tensorboard = cfg.use_tensorboard and CrayonClient is not None
-
-use_tensorboard = False
-remove_all_log = True
-if use_tensorboard:
-    cc = CrayonClient(hostname='127.0.0.1')
-    if remove_all_log:
-        print('remove all experiments')
-        cc.remove_all_experiments()
-    if start_epoch == 0:
-        try:
-            cc.remove_experiment(cfg.exp_name)
-        except ValueError:
-            pass
-        exp = cc.create_experiment(cfg.exp_name)
-    else:
-        exp = cc.open_experiment(cfg.exp_name)
 
 train_loss = 0
 bbox_loss, iou_loss, cls_loss = 0., 0., 0.
@@ -83,9 +71,9 @@ cnt = 0
 timer = Timer()
 
 # default input size
-network_size = cfg.inp_size
+network_size = np.array(cfg['inp_size'], dtype=np.int)
 
-for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch_per_epoch):
+for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.batch_per_epoch):
     timer.tic()
 
     prev_epoch = imdb.epoch
@@ -117,7 +105,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg.max_epoch * imdb.batch
     train_loss += net.loss.data.cpu().numpy()[0]
     cnt += 1
 
-    if step % cfg.disp_interval == 0:
+    if step % cfg['disp_interval'] == 0:
         progress_in_epoch = (step % imdb.batch_per_epoch) / imdb.batch_per_epoch
         print('%.2f%%' % (progress_in_epoch * 100), end=' ')
         sys.stdout.flush()

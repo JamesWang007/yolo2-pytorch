@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import utils.network as net_utils
-from cfgs.config_v2 import cfg
 from layers.reorg.reorg_layer import ReorgLayer
 from utils.cython_bbox import bbox_ious, bbox_intersections, bbox_overlaps, anchor_intersections
 from utils.cython_yolo import yolo_to_bbox
@@ -33,7 +32,7 @@ def _make_layers(in_channels, net_cfg):
 
 
 def _process_batch(data):
-    bbox_pred_np, gt_boxes, gt_classes, dontcares, inp_size = data
+    bbox_pred_np, gt_boxes, gt_classes, dontcares, inp_size, cfg = data
     out_size = inp_size / 32
     W, H = out_size
 
@@ -134,8 +133,9 @@ def _process_batch(data):
 
 
 class Darknet19(nn.Module):
-    def __init__(self):
+    def __init__(self, cfg):
         super(Darknet19, self).__init__()
+        self.cfg = cfg
 
         net_cfgs = [
             # conv1s
@@ -191,7 +191,7 @@ class Darknet19(nn.Module):
         # bsize, c, h, w -> bsize, h, w, c -> bsize, h x w, num_anchors, 5+num_classes
         bsize, _, h, w = conv5.size()
         # assert bsize == 1, 'detection only support one image per batch'
-        conv5_reshaped = conv5.permute(0, 2, 3, 1).contiguous().view(bsize, -1, cfg['num_anchors'], cfg['num_classes'] + 5)
+        conv5_reshaped = conv5.permute(0, 2, 3, 1).contiguous().view(bsize, -1, self.cfg['num_anchors'], self.cfg['num_classes'] + 5)
 
         # tx, ty, tw, th, to -> sig(tx), sig(ty), exp(tw), exp(th), sig(to)
         xy_pred = F.sigmoid(conv5_reshaped[:, :, :, 0:2])
@@ -240,8 +240,8 @@ class Darknet19(nn.Module):
         :param bbox_pred: shape: (bsize, h x w, num_anchors, 4) : (sig(tx), sig(ty), exp(tw), exp(th))
         """
         bsize = bbox_pred_np.shape[0]
-
-        targets = self.pool.map(_process_batch, ((bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b], inp_size) for b in range(bsize)))
+        data = [(bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b], inp_size, self.cfg) for b in range(bsize)]
+        targets = self.pool.map(_process_batch, data)
 
         _boxes = np.stack(tuple((row[0] for row in targets)))
         _ious = np.stack(tuple((row[1] for row in targets)))
