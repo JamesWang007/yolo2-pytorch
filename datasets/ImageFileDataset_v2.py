@@ -8,9 +8,7 @@ from datasets.voc_eval import voc_eval
 from utils.im_transform import imcv2_recolor
 from utils.im_transform import imcv2_affine_trans
 from utils.yolo import _offset_boxes
-from cfgs import config
-from cfgs import config_voc
-# from cfgs import config_kitti
+from cfgs.config_v2 import cfg
 
 
 class ImageFileDataset(ImageDataset):
@@ -25,11 +23,11 @@ class ImageFileDataset(ImageDataset):
         self.label_list_file = train_labels
         self.imdb_name = imdb_name
         if self.imdb_name == 'kitti':
-            self._classes = config_voc.label_names
+            self._classes = cfg['label_names']
         elif self.imdb_name == 'dashdam':
             self._classes = ('car', 'bus', 'motorbike', 'bike', 'person')
         else:
-            self._classes = config_voc.label_names
+            self._classes = cfg['label_names']
 
         self.load_dataset()
 
@@ -49,7 +47,7 @@ class ImageFileDataset(ImageDataset):
         with open(self.label_list_file) as f:
             for fi, label_file_name in enumerate(f.readlines()):
                 label_file_name = label_file_name.strip()
-                label_dict = self.parse_label_file(label_file_name, config.label_names, self.imdb_name)
+                label_dict = self.parse_label_file(label_file_name, cfg['label_names'], self.imdb_name)
                 if not label_dict['has_label']:
                     remove_id_list.append(fi)
                 self._annotations.append(label_dict)

@@ -1,16 +1,22 @@
 import os
-from cfgs.config_voc import *
-# from cfgs.exps.voc0712_new_2 import *
-from cfgs.exps.kitti_ft_exp3 import *
+import yaml
 
-# 10.5 ~ 11 ms  yolo_flow  detection only
-# 0.75 s/batch
+cfg = dict()
 
-# 16 ~ 17 ms  anaconda
-# 1.55 s/batch
-
-label_names = label_names
-num_classes = len(label_names)
+# Read YAML file
+try:
+    cfgs_dir = '/home/cory/yolo2-pytorch/cfgs'
+    config_dataset = open(cfgs_dir + '/config_voc.yaml', 'r')
+    config_exp = open(cfgs_dir + '/exps/voc0712_trainval_ft_debug2.yaml', 'r')
+    cfg.update(yaml.load(config_dataset))
+    cfg.update(yaml.load(config_exp))
+    print('-------------------------------')
+    for k, v in cfg.items():
+        print(k, v)
+    print('-------------------------------')
+except Exception:
+    print('Error: cannot parse cfg')
+    raise Exception
 
 
 def mkdir(path, max_depth=3):
@@ -29,7 +35,7 @@ thresh = 0.3
 
 # dir config
 ############################
-ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+'''ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
 MODEL_DIR = os.path.join(ROOT_DIR, 'models')
 TRAIN_DIR = os.path.join(MODEL_DIR, 'training')
@@ -42,7 +48,7 @@ test_output_dir = os.path.join(TEST_DIR, imdb_test, h5_fname)
 log_file = os.path.join(train_output_dir, 'train.log')
 check_point_file = os.path.join(train_output_dir, 'check_point.txt')
 mkdir(train_output_dir, max_depth=3)
-mkdir(test_output_dir, max_depth=4)
+mkdir(test_output_dir, max_depth=4)'''
 
 rand_seed = 1024
 use_tensorboard = False

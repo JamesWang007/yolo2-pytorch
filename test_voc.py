@@ -11,6 +11,8 @@ from utils.timer import Timer
 from datasets.pascal_voc import VOCDataset
 import cfgs.config as cfg
 
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 
 def preprocess(fname):
     # return fname
@@ -123,8 +125,9 @@ def test_ap_exp(model):
 
 
 if __name__ == '__main__':
-    model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug5/voc0712_trainval_ft_debug5_38.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
     # model = cfg.trained_model
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_1.h5'
     test_ap_exp(model)
 
     # 0.6479  my trained 200 epoch
@@ -135,10 +138,55 @@ if __name__ == '__main__':
     # 0.6763  epoch 27
     # 0.6788  epoch 31
     # 0.6823  epoch 38
+    # 0.6825  epoch 43
+    # 0.6809  epoch 45
+    # 0.6811  epoch 46
 
     # 0.7221  pre-trained
     # 0.7174  epoch 1
     # 0.7105  epoch 12
+
+    # voc0712_new
+    # 0.6486  97
+    # 0.6459  110
+    # 0.6477  118
+    # 0.6449  119
+
+    # voc0712_new_2
+    # 0.6714  133
+    # 0.6717  150
+    # 0.6727  155
+    # 0.6727  158
+    # 0.6731  160 *
+    # 0.6728  162
+    # 0.6727  163
+    # 0.6717  164
+    # 0.6721  168
+    # 0.6722  171
+    # 0.6725  180
+    # 0.6725  190
+    # 0.6725  200
+
+    # batch_size = 16, hi-res, lr = 1e-6
+    # 0.6683  201
+    # 0.6711  202
+    # 0.6714  203
+    # 0.6713  204
+    # 0.6723  205
+    # 0.6712  206
+
+    # lr = 1e-5
+    # 0.6713  161
+    # 0.6699  162
+    # 0.6729  163
+    # 0.6714  164
+    # 0.6734  165
+    # 0.6738  166
+    # 0.6691  168
+    # 0.6731  169
+    # 0.6719  200
+    # 0.6727  250
+
 
 
 

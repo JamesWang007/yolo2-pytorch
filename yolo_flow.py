@@ -79,11 +79,13 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp2/kitti_ft_exp2_5.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_trainval_ft_debug5/voc0712_trainval_ft_debug5_24.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_my/kitti_ft_exp3_my_100.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_new/kitti_ft_exp3_new_20.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0019'
     # image_dir = '/home/cory/cedl/home/cory/yolo2-pytorch/models/training/dashcam_ft_exp1/dashcam_ft_exp1_6.h5/dashcam/images/000900'
     # image_dir = '/home/cory/VOC/VOCdevkit/VOC2012/JPEGImages'
     # image_dir = '/home/cory/cedl/GTAV'

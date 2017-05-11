@@ -47,8 +47,10 @@ def run_vis():
 def vis_list_file():
     # images_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_images.txt'
     # labels_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt'
-    images_path = '/media/cory/BackUp/ImageNet/vid_all_images.txt'
-    labels_path = '/media/cory/BackUp/ImageNet/vid_all_labels.txt'
+    # images_path = '/media/cory/BackUp/ImageNet/vid_all_images.txt'
+    # labels_path = '/media/cory/BackUp/ImageNet/vid_all_labels.txt'
+    images_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
+    labels_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
     image_file = open(images_path)
     label_file = open(labels_path)
     images = [p.strip() for p in image_file.readlines()]
