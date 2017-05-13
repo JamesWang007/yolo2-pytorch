@@ -35,7 +35,8 @@ train_labels: /home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt
 val_images: /home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt
 val_labels: /home/cory/yolo2-pytorch/train_data/kitti/kitti_val_labels.txt
 batch_size: 1
-train_batch_size: 12
+train_batch_size: 16
+val_batch_size: 8
 
 # log & display
-disp_interval: 10
+disp_interval: 20

@@ -9,12 +9,13 @@ def plot_vis(image_path, label_path):
     for label in label_file.readlines():
         values = label.strip().split(' ')
         label = values[0]
+        label = label.replace('DontCare', '')
         xmin = int(float(values[1]))
         ymin = int(float(values[2]))
         xmax = int(float(values[3]))
         ymax = int(float(values[4]))
         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1)
-        cv2.putText(img, label, (xmin, ymax), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 1, cv2.LINE_AA)
+        cv2.putText(img, label, (xmin, ymax), cv2.FORMATTER_FMT_CSV, 1, (0, 255, 0), 1, cv2.LINE_AA)
         print(values)
 
     cv2.imshow('img', img)
@@ -27,7 +28,7 @@ def plot_vis(image_path, label_path):
 
 
 def run_vis():
-    choice = 4
+    choice = 5
     if choice == 1:
         image_path = '/home/cory/cedl/dashcam/images/000900/000010.jpg'
         label_path = '/home/cory/cedl/dashcam/labels/000900/000010.txt'
@@ -45,14 +46,18 @@ def run_vis():
 
 
 def vis_list_file():
-    # images_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_images.txt'
-    # labels_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt'
-    # images_path = '/media/cory/BackUp/ImageNet/vid_all_images.txt'
-    # labels_path = '/media/cory/BackUp/ImageNet/vid_all_labels.txt'
-    images_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
-    labels_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
-    image_file = open(images_path)
-    label_file = open(labels_path)
+    # image_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_images.txt'
+    # label_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt'
+    # image_path = '/media/cory/BackUp/ImageNet/vid_all_images.txt'
+    # label_path = '/media/cory/BackUp/ImageNet/vid_all_labels.txt'
+    # image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
+    # label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
+
+    image_path = '/home/cory/yolo2-pytorch/train_data/kitti/0013_images.txt'
+    label_path = '/home/cory/yolo2-pytorch/train_data/kitti/0013_labels.txt'
+
+    image_file = open(image_path)
+    label_file = open(label_path)
     images = [p.strip() for p in image_file.readlines()]
     labels = [p.strip() for p in label_file.readlines()]
     for i in range(len(images)):

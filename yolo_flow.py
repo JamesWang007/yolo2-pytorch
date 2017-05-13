@@ -44,6 +44,7 @@ def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
                 if label != 'car' and label != 'person':
                     continue
                 label = label.replace('person', 'pedestrian')
+
             line_str = '{:d} -1 {:s} 0 0 0 {:d} {:d} {:d} {:d} 0 0 0 0 0 0 {:.4f}\n' \
                 .format(frame_id, label, bbox[0], bbox[1], bbox[2], bbox[3], score)
             # print(line_str)
@@ -51,28 +52,42 @@ def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
 
 
 def detect_by_flow(frame_index,  conv5_feat, current_frame, image_path, key_frame_path):
-    flow = spynet_flow(image_path, key_frame_path)
-    # flow = dis_flow(image_path, key_frame_path)
+    t = time.time()
+    # flow = spynet_flow(image_path, key_frame_path)
+    flow = dis_flow(image_path, key_frame_path)
     # print('flow sum =', sum(flow.ravel()))
+    print('flow', time.time() - t)
 
+    t = time.time()
     flow_rgb = draw_hsv(flow)
     cv2.imwrite('output/flow/flow_{:04d}.jpg'.format(frame_index), flow_rgb)
+    print('flow_rgb', time.time() - t)
 
+    t = time.time()
     feat_size = cfg.inp_size[1] // 32, cfg.inp_size[0] // 32
     flow_feat = get_flow_for_filter(flow, feat_size)
     flow_feat_hsv = draw_hsv(flow_feat, ratio=50)
     cv2.imwrite('output/flow_feat/flow_{:04d}.jpg'.format(frame_index), flow_feat_hsv)
     # print('flow_feat sum =', sum(flow_feat.ravel()))
+    print('flow_feat_hsv', time.time() - t)
 
+    t = time.time()
     img_warp = warp_flow(current_frame, flow)
     # cv2.imshow('img_warp', img_warp)
     cv2.imwrite('output/warp/warp_{:04d}.jpg'.format(frame_index), img_warp)
+    print('warp_flow', time.time() - t)
 
+    t = time.time()
     conv5_shifted = shift_filter(conv5_feat, flow_feat)
-    feat_warp = plot_feature_map(conv5_shifted, resize_ratio=10) * 255.
-    cv2.imwrite('output/feat_warp/warp_{:04d}.jpg'.format(frame_index), feat_warp)
+    print('shift_filter', time.time() - t)
+    t = time.time()
+    # feat_warp = plot_feature_map(conv5_shifted, resize_ratio=10) * 255.
+    # cv2.imwrite('output/feat_warp/warp_{:04d}.jpg'.format(frame_index), feat_warp)
+    print('feat_warp', time.time() - t)
 
+    t = time.time()
     conv5_shifted_gpu = torch.FloatTensor(conv5_shifted).cuda()
+    print('conv5_shifted_gpu', time.time() - t)
     return conv5_shifted_gpu
 
 
@@ -82,17 +97,14 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_my/kitti_ft_exp3_my_100.h5'
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_ft_exp3_new/kitti_ft_exp3_new_40.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_5.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_60.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_10.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0001'
-    # image_dir = '/home/cory/cedl/home/cory/yolo2-pytorch/models/training/dashcam_ft_exp1/dashcam_ft_exp1_6.h5/dashcam/images/000900'
-    # image_dir = '/home/cory/VOC/VOCdevkit/VOC2012/JPEGImages'
-    # image_dir = '/home/cory/cedl/GTAV'
+    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0013'
+    # car = 1 5
+    # pedestrian = 13 17
 
     net = Darknet19()
     net_utils.load_net(trained_model, net)

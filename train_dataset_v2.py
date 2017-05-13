@@ -10,10 +10,9 @@ from train_util_v2 import *
 from utils.timer import Timer
 
 dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_1.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
 
 cfg = dict()
-# add_cfg(cfg, '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml')
 add_cfg(cfg, dataset_yaml)
 add_cfg(cfg, exp_yaml)
 

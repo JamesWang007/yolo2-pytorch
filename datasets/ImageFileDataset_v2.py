@@ -11,7 +11,11 @@ from utils.yolo import _offset_boxes
 
 class ImageFileDataset(ImageDataset):
     def __init__(self, cfg, im_processor, processes=2, shuffle=True, dst_size=None, mode='train'):
-        super(ImageFileDataset, self).__init__(cfg['dataset_name'], '', cfg['train_batch_size'],
+        if mode == 'train':
+            batch_size = cfg['train_batch_size']
+        else:
+            batch_size = cfg['val_batch_size']
+        super(ImageFileDataset, self).__init__(cfg['dataset_name'], '', batch_size,
                                                im_processor, processes, shuffle, dst_size)
         self.cfg = cfg
         self._class_to_ind = dict(zip(self.classes, range(self.num_classes)))
@@ -79,7 +83,7 @@ class ImageFileDataset(ImageDataset):
                     # label not exist, ignore it
                     label_id = -1
                 gt_classes.append(label_id)
-                bbox = [int(float(v)) for v in values[1:]]
+                bbox = [int(float(v)) for v in values[1:5]]
                 boxes.append(bbox)
                 has_label = True
         assert len(gt_classes) == len(boxes)
@@ -152,79 +156,3 @@ class ImageFileDataset(ImageDataset):
             plt.show()
 
         return im, boxes, gt_classes, [], ori_im
-
-    def get_image(self, img_path):
-        pass
-
-    def get_detection(self, det_path):
-        pass
-
-
-def convert_kitti(kitti_dir, detection_output_dir):
-    kitti_detection_file_names = os.listdir(kitti_dir)
-    print(len(kitti_detection_file_names), kitti_detection_file_names)
-    for det_file_name in kitti_detection_file_names:
-        abs_det_file_name = os.path.join(kitti_dir, det_file_name)
-        with open(abs_det_file_name) as det_file:
-            tracklet_prefix = det_file_name.replace('.txt', '')
-            lines = det_file.readlines()
-            all_detections = list()
-            for line in lines:
-                values = line.strip().split(' ')
-                # print(values)
-                frame = values[0]
-                label = values[2]
-                xmin = values[6]
-                ymin = values[7]
-                xmax = values[8]
-                ymax = values[9]
-
-                frame_i = int(frame)
-                while len(all_detections) <= frame_i:
-                    all_detections.append(list())
-
-                all_detections[frame_i].append((frame, label, xmin, ymin, xmax, ymax))
-
-            print(len(all_detections))
-
-            out_dir = os.path.join(detection_output_dir, tracklet_prefix)
-            if os.path.exists(out_dir):
-                shutil.rmtree(out_dir)
-            os.makedirs(out_dir)
-
-            print(out_dir)
-            for frame_id, det_per_img in enumerate(all_detections):
-                det_filename = '{:06d}.txt'.format(frame_id)
-                with open(os.path.join(out_dir, det_filename), 'w') as f:
-                    for det in det_per_img:
-                        f.write(' '.join(det[1:]) + '\n')
-
-
-def iou_func(bbox1, bbox2):
-    x1 = bbox1[0]
-    y1 = bbox1[1]
-    width1 = bbox1[2] - bbox1[0]
-    height1 = bbox1[3] - bbox1[1]
-
-    x2 = bbox2[0]
-    y2 = bbox2[1]
-    width2 = bbox2[2] - bbox2[0]
-    height2 = bbox2[3] - bbox2[1]
-
-    endx = max(x1 + width1, x2 + width2)
-    startx = min(x1, x2)
-    width = width1 + width2 - (endx - startx)
-
-    endy = max(y1 + height1, y2 + height2)
-    starty = min(y1, y2)
-    height = height1 + height2 - (endy - starty)
-
-    if width <= 0 or height <= 0:
-        ratio = 0
-    else:
-        area = width * height
-        area1 = width1 * height1
-        area2 = width2 * height2
-        ratio = area * 1. / (area1 + area2 - area)
-    # return IOU
-    return ratio

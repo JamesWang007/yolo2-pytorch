@@ -2,7 +2,7 @@ import os
 import numpy as np
 import sys
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 
 from cfgs.config_v2 import add_cfg
@@ -23,18 +23,24 @@ add_cfg(cfg, exp_yaml)
 
 # data loader
 imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
-                        processes=4, shuffle=True, dst_size=None, mode='val')
+                        processes=4, shuffle=False, dst_size=None, mode='val')
 
 print('imdb load data succeeded')
 net = Darknet19(cfg)
 
 # CUDA_VISIBLE_DEVICES=1
+# 20  0.68
+# 40  0.60
+# 45  0.56
+# 50  0.58
+# 55  0.55
+# 60  0.59
 
 os.makedirs(cfg['train_output_dir'], exist_ok=True)
 try:
     ckp = open(cfg['train_output_dir'] + '/check_point.txt')
     ckp_epoch = int(ckp.readlines()[0])
-    ckp_epoch = 10
+    ckp_epoch = 60
     # raise IOError
     use_model = os.path.join(cfg['train_output_dir'], cfg['exp_name'] + '_' + str(ckp_epoch) + '.h5')
 except IOError:
@@ -73,7 +79,7 @@ timer = Timer()
 # default input size
 network_size = np.array(cfg['inp_size'], dtype=np.int)
 
-for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.batch_per_epoch):
+for step in range(start_epoch * imdb.batch_per_epoch, (start_epoch + 5) * imdb.batch_per_epoch + 1):
     timer.tic()
 
     prev_epoch = imdb.epoch
