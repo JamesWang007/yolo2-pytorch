@@ -15,6 +15,8 @@ from train_util_v2 import *
 
 dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
 exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_obj_scale.yaml'
 
 cfg = dict()
 # add_cfg(cfg, '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml')
@@ -40,7 +42,7 @@ os.makedirs(cfg['train_output_dir'], exist_ok=True)
 try:
     ckp = open(cfg['train_output_dir'] + '/check_point.txt')
     ckp_epoch = int(ckp.readlines()[0])
-    ckp_epoch = 60
+    # ckp_epoch = 100
     # raise IOError
     use_model = os.path.join(cfg['train_output_dir'], cfg['exp_name'] + '_' + str(ckp_epoch) + '.h5')
 except IOError:

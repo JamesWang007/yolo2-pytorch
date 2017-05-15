@@ -1,0 +1,46 @@
+%YAML 1.2
+---
+exp_name: voc0712_obj_scale
+dataset_name: voc
+pretrained_model: /home/cory/yolo2-pytorch/models/yolo-voc.weights.h5
+train_output_dir: /home/cory/yolo2-pytorch/models/training/voc0712_obj_scale
+network_size_rand_period: 10
+inp_size: [416, 416]
+out_size: [13, 13] # inp_size / 32
+inp_size_candidates: [[320, 320], [352, 352], [384, 384], [416, 416], [448, 448],
+                      [480, 480], [512, 512], [544, 544], [576, 576], [608, 608]]
+
+optimizer: SGD  # 'SGD, Adam'
+opt_param: all  # 'all, conv345'
+
+start_step: 0
+lr_epoch: [0, 60]
+lr_val: [!!float 1e-6, !!float 1e-7]
+max_epoch: 200
+
+# SGD only
+weight_decay: 0.0005
+momentum: 0.9
+
+# for training yolo2
+object_scale: 1.
+noobject_scale: 0.5
+class_scale: 1.
+coord_scale: 5.
+iou_thresh: 0.6
+
+# dataset
+imdb_train: voc0712_trainval
+imdb_test: voc07_test
+train_images: /home/cory/yolo2-pytorch/train_data/voc/voc_train_images.txt
+train_labels: /home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt
+val_images: /home/cory/yolo2-pytorch/train_data/voc/voc_test_images.txt
+val_labels: /home/cory/yolo2-pytorch/train_data/voc/voc_test_labels.txt
+batch_size: 1
+train_batch_size: 16
+val_batch_size: 8
+
+# log & display
+disp_interval: 10
+log_file: /home/cory/yolo2-pytorch/models/training/voc0712_ft/train.log
+check_point_file: /home/cory/yolo2-pytorch/models/training/voc0712_ft/check_point.txt

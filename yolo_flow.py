@@ -97,7 +97,8 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_60.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_60.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_10.h5'
     thresh = 0.5

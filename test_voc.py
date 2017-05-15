@@ -127,7 +127,11 @@ def test_ap_exp(model):
 if __name__ == '__main__':
     # model = '/home/cory/yolo2-pytorch/models/training/voc0712_new_2/voc0712_new_2_160.h5'
     # model = cfg.trained_model
-    model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_5.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_5.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_mask_val/voc0712_mask_val_14.h5'
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_anchor/voc0712_anchor_94.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_template/voc0712_template_55.h5'
+
     test_ap_exp(model)
 
     # 0.6479  my trained 200 epoch
@@ -141,6 +145,18 @@ if __name__ == '__main__':
     # 0.6825  epoch 43
     # 0.6809  epoch 45
     # 0.6811  epoch 46
+
+    # 0.6458  template 50
+    # 0.6614  template 55
+
+    # 0.6613  anchor 4
+    # 0.6624  anchor 8
+    # 0.6627  anchor 9
+    # 0.6639  anchor 10
+    # 0.6631  anchor 11
+    # 0.6627  anchor 12
+    # 0.6639  anchor 26
+    # 0.7025  anchor 94
 
     # 0.7221  pre-trained
     # 0.7235  ft 1
@@ -189,13 +205,4 @@ if __name__ == '__main__':
     # 0.6731  169
     # 0.6719  200
     # 0.6727  250
-
-
-
-
-
-
-
-
-
 

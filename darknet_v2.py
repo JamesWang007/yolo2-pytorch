@@ -32,14 +32,19 @@ def _make_layers(in_channels, net_cfg):
 
 
 def _process_batch(data):
-    bbox_pred_np, gt_boxes, gt_classes, dontcares, inp_size, cfg = data
+    bbox_pred_np, gt_boxes, gt_classes, dontcares, iou_pred_np, inp_size, cfg = data
     out_size = inp_size / 32
     W, H = out_size
+    num_gt = gt_boxes.shape[0]
+
+    cell_w = 32
+    cell_h = 32
 
     # mask out dontcare
 
     # net output
     hw, num_anchors, _ = bbox_pred_np.shape
+    # hw = num_cell
 
     # gt
     _classes = np.zeros([hw, num_anchors, cfg['num_classes']], dtype=np.float)
@@ -51,7 +56,9 @@ def _process_batch(data):
     _boxes = np.zeros([hw, num_anchors, 4], dtype=np.float)
     _boxes[:, :, 0:2] = 0.5
     _boxes[:, :, 2:4] = 1.0
+    # debug mask_val
     _box_mask = np.zeros([hw, num_anchors, 1], dtype=np.float) + 0.01
+    # _box_mask = np.zeros([hw, num_anchors, 1], dtype=np.float)
 
     # scale pred_bbox
     anchors = np.ascontiguousarray(cfg['anchors'], dtype=np.float)
@@ -60,51 +67,52 @@ def _process_batch(data):
         np.ascontiguousarray(bbox_pred_np, dtype=np.float),
         anchors,
         H, W)
-    bbox_np = bbox_np[0]
-    bbox_np[:, :, 0::2] *= float(inp_size[0])
-    bbox_np[:, :, 1::2] *= float(inp_size[1])
+    bbox_np = bbox_np[0]  # bbox_np = (hw, num_anchors, (x1, y1, x2, y2))   range: 0 ~ 1
+    bbox_np[:, :, 0::2] *= float(inp_size[0])  # rescale x
+    bbox_np[:, :, 1::2] *= float(inp_size[1])  # rescale y
 
     # gt_boxes_b = np.asarray(gt_boxes[b], dtype=np.float)
     gt_boxes_b = np.asarray(gt_boxes, dtype=np.float)
 
-    # for each cell
+    # for each cell, compare predicted_bbox and gt_bbox
     bbox_np_b = np.reshape(bbox_np, [-1, 4])
     ious = bbox_ious(
         np.ascontiguousarray(bbox_np_b, dtype=np.float),
         np.ascontiguousarray(gt_boxes_b, dtype=np.float)
     )
     best_ious = np.max(ious, axis=1).reshape(_iou_mask.shape)
-    _iou_mask[best_ious <= cfg['iou_thresh']] = cfg['noobject_scale']
+    # _iou_mask[best_ious < cfg['iou_thresh']] = cfg['noobject_scale'] * 1
+    iou_penalty = 0 - iou_pred_np[best_ious < cfg['iou_thresh']]
+    _iou_mask[best_ious < cfg['iou_thresh']] = cfg['noobject_scale'] * iou_penalty
+    ious_reshaped = np.reshape(ious, [hw, num_anchors, num_gt])
 
     # locate the cell of each gt_boxes
-    cell_w = float(inp_size[0]) / W
-    cell_h = float(inp_size[1]) / H
     cx = (gt_boxes_b[:, 0] + gt_boxes_b[:, 2]) * 0.5 / cell_w
     cy = (gt_boxes_b[:, 1] + gt_boxes_b[:, 3]) * 0.5 / cell_h
     cell_inds = np.floor(cy) * W + np.floor(cx)
     cell_inds = cell_inds.astype(np.int)
 
     target_boxes = np.empty(gt_boxes_b.shape, dtype=np.float)
-    target_boxes[:, 0] = cx - np.floor(cx)  # cx
-    target_boxes[:, 1] = cy - np.floor(cy)  # cy
-    target_boxes[:, 2] = (gt_boxes_b[:, 2] - gt_boxes_b[:, 0]) / inp_size[0] * out_size[0]  # tw
-    target_boxes[:, 3] = (gt_boxes_b[:, 3] - gt_boxes_b[:, 1]) / inp_size[1] * out_size[1]  # th
+    target_boxes[:, 0] = cx - np.floor(cx)  # cx  (0 ~ 1)
+    target_boxes[:, 1] = cy - np.floor(cy)  # cy  (0 ~ 1)
+    target_boxes[:, 2] = (gt_boxes_b[:, 2] - gt_boxes_b[:, 0]) / cell_w  # tw
+    target_boxes[:, 3] = (gt_boxes_b[:, 3] - gt_boxes_b[:, 1]) / cell_h  # th
 
     # for each gt boxes, match the best anchor
     # gt_boxes_resize = [(xmin, ymin, xmax, ymax)] unit: cell px
     gt_boxes_resize = np.copy(gt_boxes_b)
-    gt_boxes_resize[:, 0::2] *= (out_size[0] / float(inp_size[0]))
-    gt_boxes_resize[:, 1::2] *= (out_size[1] / float(inp_size[1]))
+    gt_boxes_resize[:, 0::2] /= 32
+    gt_boxes_resize[:, 1::2] /= 32
     anchor_ious = anchor_intersections(
         anchors,
         np.ascontiguousarray(gt_boxes_resize, dtype=np.float)
     )
     anchor_inds = np.argmax(anchor_ious, axis=0)
 
-    ious_reshaped = np.reshape(ious, [hw, num_anchors, len(cell_inds)])
+    # for every gt cell
     for i, cell_ind in enumerate(cell_inds):
         if cell_ind >= hw or cell_ind < 0:
-            print('warning: cell_ind >= hw', cell_ind, hw)
+            print('warning: invalid cell_ind, cx, cy, W, H', cell_ind, cx[i], cy[i], W, H)
             continue
         a = anchor_inds[i]
 
@@ -113,10 +121,12 @@ def _process_batch(data):
             # print(-1)
             continue
 
-        _iou_mask[cell_ind, a, :] = cfg['object_scale']
+        iou_pred_cell_anchor = iou_pred_np[cell_ind, a, :]  # 0 ~ 1, should be close to 1
+        real_iou = ious_reshaped[cell_ind, a, i]
+        _iou_mask[cell_ind, a, :] = cfg['object_scale'] * (1 - iou_pred_cell_anchor)
         # _ious[cell_ind, a, :] = anchor_ious[a, i]
         _ious[cell_ind, a, :] = ious_reshaped[cell_ind, a, i]
-        # print('anchor_iou {:.4f} vs  real_iou {:.4f}'.format(anchor_ious[a, i], ious_reshaped[cell_ind, a, i]))
+        # print('anchor_iou {:.4f} vs  real_iou {:.4f}'.format(anchor_ious[a, i], real_iou))
 
         _box_mask[cell_ind, a, :] = cfg['coord_scale']
         target_boxes[i, 2:4] /= anchors[a]
@@ -206,14 +216,16 @@ class Darknet19(nn.Module):
         if debug:
             bbox_pred_np = bbox_pred.data.cpu().numpy()
             iou_pred_np = iou_pred.data.cpu().numpy()
+            score_pred_np = score_pred.data.cpu().numpy()
             prob_pred_np = prob_pred.data.cpu().numpy()
-            print(np.max(bbox_pred_np), np.max(iou_pred_np), np.max(prob_pred_np))
+            print(np.max(bbox_pred_np), np.max(iou_pred_np), np.max(score_pred_np), np.max(prob_pred_np))
 
         # for training
         if self.training:
             bbox_pred_np = bbox_pred.data.cpu().numpy()
+            iou_pred_np = iou_pred.data.cpu().numpy()
             _boxes, _ious, _classes, _box_mask, _iou_mask, _class_mask = self._build_target(
-                bbox_pred_np, gt_boxes, gt_classes, dontcare, inp_size)
+                bbox_pred_np, gt_boxes, gt_classes, dontcare, iou_pred_np, inp_size)
 
             _boxes = net_utils.np_to_variable(_boxes)
             _ious = net_utils.np_to_variable(_ious)
@@ -235,12 +247,12 @@ class Darknet19(nn.Module):
 
         return bbox_pred, iou_pred, prob_pred
 
-    def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, dontcare, inp_size):
+    def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, dontcare, iou_pred_np, inp_size):
         """
         :param bbox_pred: shape: (bsize, h x w, num_anchors, 4) : (sig(tx), sig(ty), exp(tw), exp(th))
         """
         bsize = bbox_pred_np.shape[0]
-        data = [(bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b], inp_size, self.cfg) for b in range(bsize)]
+        data = [(bbox_pred_np[b], gt_boxes[b], gt_classes[b], dontcare[b], iou_pred_np[b], inp_size, self.cfg) for b in range(bsize)]
         targets = self.pool.map(_process_batch, data)
 
         _boxes = np.stack(tuple((row[0] for row in targets)))

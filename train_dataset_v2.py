@@ -9,8 +9,11 @@ from datasets.ImageFileDataset_v2 import ImageFileDataset
 from train_util_v2 import *
 from utils.timer import Timer
 
-dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+# dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_anchor.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_template.yaml'
 
 cfg = dict()
 add_cfg(cfg, dataset_yaml)
@@ -23,8 +26,8 @@ imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
 print('imdb load data succeeded')
 net = Darknet19(cfg)
 
-# CUDA_VISIBLE_DEVICES=1
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+gpu_id = 0
+os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 
 os.makedirs(cfg['train_output_dir'], exist_ok=True)
 try:
