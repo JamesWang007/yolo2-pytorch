@@ -16,7 +16,7 @@ opt_param: all  # 'all, conv345'
 start_step: 0
 lr_epoch: [0, 60, 90]
 lr_val: [!!float 1e-3, !!float 1e-4, !!float 1e-5]
-max_epoch: 100
+max_epoch: 200
 
 # SGD only
 weight_decay: 0.0005

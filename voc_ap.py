@@ -107,7 +107,7 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
     return mAP
 
 
-def test_ap_exp(model):
+def voc_ap(model):
     print(model)
     imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
                       yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
@@ -129,25 +129,41 @@ if __name__ == '__main__':
     # model = cfg.trained_model
     # model = '/home/cory/yolo2-pytorch/models/training/voc0712_ft/voc0712_ft_5.h5'
     # model = '/home/cory/yolo2-pytorch/models/training/voc0712_mask_val/voc0712_mask_val_14.h5'
-    model = '/home/cory/yolo2-pytorch/models/training/voc0712_anchor/voc0712_anchor_94.h5'
-    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_template/voc0712_template_55.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_mask/voc0712_mask_14.h5'
+    # model = '/home/cory/yolo2-pytorch/models/training/voc0712_template/voc0712_template_20.h5'
+    model = '/home/cory/yolo2-pytorch/models/training/voc0712_box_mask_0/voc0712_box_mask_0_20.h5'
 
-    test_ap_exp(model)
+    voc_ap(model)
 
-    # 0.6479  my trained 200 epoch
-    # 0.6724  epoch 10
-    # 0.6762  epoch 19
-    # 0.6742  epoch 20
-    # 0.6754  epoch 24
-    # 0.6763  epoch 27
-    # 0.6788  epoch 31
-    # 0.6823  epoch 38
-    # 0.6825  epoch 43
-    # 0.6809  epoch 45
-    # 0.6811  epoch 46
-
+    # 0.5063  template 5
+    # 0.5800  template 10
+    # 0.6421  template 20
     # 0.6458  template 50
     # 0.6614  template 55
+    # 0.7040  template 87
+    # 0.7058  template 91
+    # 0.7055  template 95
+    # 0.7061  template 96
+    # 0.7073  template 97
+    # 0.7069  template 100  *
+    # 0.7084  template 101
+    # 0.7066  template 102
+    # 0.7074  template 104
+    # 0.7059  template 105
+    # 0.7063  template 112
+    # 0.7051  template 130
+    # 0.7075  template 134
+    # 0.7078  template 160
+    # 0.7091  template 180
+    # 0.7102  template 181
+    # 0.7065  template 190
+    # 0.7119  template 198
+    # 0.7099  template 199
+
+    # remove box_mask 0.01
+    # 0.4299  5
+    # 0.5703  10
+    # 0.6622  20
 
     # 0.6613  anchor 4
     # 0.6624  anchor 8
@@ -157,13 +173,10 @@ if __name__ == '__main__':
     # 0.6627  anchor 12
     # 0.6639  anchor 26
     # 0.7025  anchor 94
+    # 0.7040  anchor 99
+    # 0.7050  anchor 119
 
     # 0.7221  pre-trained
-    # 0.7235  ft 1
-    # 0.7227  ft 2
-    # 0.7173  ft 5
-    # 0.7160  ft 10
-    # 0.7143  ft 28
 
     # voc0712_new
     # 0.6486  97

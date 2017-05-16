@@ -13,10 +13,10 @@ from utils.timer import Timer
 from train_util_v2 import *
 
 
-dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+# dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
 dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_obj_scale.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_template.yaml'
 
 cfg = dict()
 # add_cfg(cfg, '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml')
@@ -104,7 +104,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, (start_epoch + 5) * imdb.b
 
     # forward
     im_data = net_utils.np_to_variable(batch['images'], is_cuda=True, volatile=False).permute(0, 3, 1, 2)
-    x = net.forward(im_data, batch['gt_boxes'], batch['gt_classes'], batch['dontcare'], network_size)
+    x = net.forward(im_data, batch['gt_boxes'], batch['gt_classes'], network_size)
 
     # loss
     bbox_loss += net.bbox_loss.data.cpu().numpy()[0]

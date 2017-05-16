@@ -9,11 +9,19 @@ def plot_vis(image_path, label_path):
     for label in label_file.readlines():
         values = label.strip().split(' ')
         label = values[0]
+        official_format = True
         label = label.replace('DontCare', '')
-        xmin = int(float(values[1]))
-        ymin = int(float(values[2]))
-        xmax = int(float(values[3]))
-        ymax = int(float(values[4]))
+        if official_format:
+            xmin = int(float(values[4]))
+            ymin = int(float(values[5]))
+            xmax = int(float(values[6]))
+            ymax = int(float(values[7]))
+        else:
+            xmin = int(float(values[1]))
+            ymin = int(float(values[2]))
+            xmax = int(float(values[3]))
+            ymax = int(float(values[4]))
+
         cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1)
         cv2.putText(img, label, (xmin, ymax), cv2.FORMATTER_FMT_CSV, 1, (0, 255, 0), 1, cv2.LINE_AA)
         print(values)
@@ -53,8 +61,8 @@ def vis_list_file():
     # image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
     # label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
 
-    image_path = '/home/cory/yolo2-pytorch/train_data/kitti/0013_images.txt'
-    label_path = '/home/cory/yolo2-pytorch/train_data/kitti/0013_labels.txt'
+    image_path = '/home/cory/yolo2-pytorch/kitti_det_images.txt'
+    label_path = '/home/cory/yolo2-pytorch/kitti_det_labels.txt'
 
     image_file = open(image_path)
     label_file = open(label_path)

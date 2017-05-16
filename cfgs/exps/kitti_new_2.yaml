@@ -1,9 +1,9 @@
 %YAML 1.2
 ---
-exp_name: kitti_new_2
+exp_name: kitti_new_2_fixed
 dataset_name: kitti
 pretrained_model: /home/cory/yolo2-pytorch/data/darknet19.weights.npz
-train_output_dir: /home/cory/yolo2-pytorch/models/training/kitti_new_2
+train_output_dir: /home/cory/yolo2-pytorch/models/training/kitti_new_2_fixed
 network_size_rand_period: 10
 inp_size: [1216, 352]
 out_size: [38, 11] # inp_size / 32

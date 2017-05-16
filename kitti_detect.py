@@ -33,10 +33,10 @@ def detection_objects(bboxes, scores, cls_inds):
     return objects
 
 
-def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
+def save_as_kitti_format(frame_id, det_obj, output_dir, src_label='voc'):
     # 'Pedestrian 0.00 0 -0.20 712.40 143.00 810.73 307.92 1.89 0.48 1.20 1.84 1.47 8.41 0.01'
     # 0 -1 car 0 0 0 1078 142 1126 164 0 0 0 0 0 0 0.415537
-    with open('kitti_det_output/' + '{:06d}.txt'.format(frame_id), 'w') as file:
+    with open(output_dir + '{:06d}.txt'.format(frame_id), 'w') as file:
         for det in det_obj:
             bbox = det[0]
             score = det[1]
@@ -59,17 +59,22 @@ def main():
     shutil.rmtree('kitti_det_output', ignore_errors=True)
     os.makedirs('kitti_det_output')
 
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_fixed/kitti_new_2_fixed_100.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_object_image_2/training/image_2'
 
     net = Darknet19()
     net_utils.load_net(trained_model, net)
     net.eval()
     net.cuda()
+    print(trained_model)
     print('load model successfully')
-    # print(net)
+
+    output_dir = 'kitti_det_output/'
+
+    shutil.rmtree(output_dir, ignore_errors=True)
+    os.mkdir(output_dir)
 
     def str_index(filename):
         if use_kitti:
@@ -79,24 +84,18 @@ def main():
         str_v = filename[begin_pos: end_pos]
         return int(str_v)
 
-    image_extensions = ['.jpg', '.JPG', '.png', '.PNG']
-    img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
-    image_abs_paths = img_files.readlines()
-    image_abs_paths = [f.strip() for f in image_abs_paths]
-    '''image_abs_paths = sorted([os.path.join(image_dir, name)
-                              for name in os.listdir(image_dir)
-                              if name[-4:] in image_extensions],
-                             key=str_index)'''
-
-    key_frame_path = ''
-    detection_period = 5
-    use_flow = False
-
-    kitti_filename = 'yolo_flow_kitti_det.txt'
-    try:
-        os.remove(kitti_filename)
-    except OSError:
-        pass
+    eval_use_dir = True
+    if eval_use_dir:
+        image_extensions = ['.jpg', '.JPG', '.png', '.PNG']
+        image_dir = '/home/cory/KITTI_Dataset/data_object_image_2/testing/image_2'
+        image_abs_paths = sorted([os.path.join(image_dir, name)
+                                  for name in os.listdir(image_dir)
+                                  if name[-4:] in image_extensions],
+                                 key=str_index)
+    else:
+        img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
+        image_abs_paths = img_files.readlines()
+        image_abs_paths = [f.strip() for f in image_abs_paths]
 
     t_det = Timer()
     t_total = Timer()
@@ -106,7 +105,6 @@ def main():
         image, im_data = preprocess(image_path)
         im_data = net_utils.np_to_variable(im_data, is_cuda=True, volatile=True).permute(0, 3, 1, 2)
 
-        layer_of_flow = 'conv4'
         t_det.tic()
         bbox_pred, iou_pred, prob_pred = net.forward(im_data)
 
@@ -121,7 +119,7 @@ def main():
 
         bboxes, scores, cls_inds = yolo_utils.postprocess(bbox_pred, iou_pred, prob_pred, image.shape, cfg, thresh)
         det_obj = detection_objects(bboxes, scores, cls_inds)
-        save_as_kitti_format(i, det_obj, kitti_filename, src_label='kitti')
+        save_as_kitti_format(i, det_obj, output_dir, src_label='kitti')
 
         vis_enable = False
         if vis_enable:
@@ -131,9 +129,9 @@ def main():
             cv2.imwrite('output/detection/{:04d}.jpg'.format(i), im2show)
 
         total_time = t_total.toc()
-        format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms)'
+        format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms) %s'
         print(format_str % (
-            i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000))
+            i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000), image_path)
 
         t_det.clear()
         t_total.clear()

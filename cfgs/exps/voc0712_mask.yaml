@@ -1,9 +1,9 @@
 %YAML 1.2
 ---
-exp_name: voc0712_template
+exp_name: voc0712_mask
 dataset_name: voc
-pretrained_model: /home/cory/yolo2-pytorch/data/darknet19.weights.npz
-train_output_dir: /home/cory/yolo2-pytorch/models/training/voc0712_template
+pretrained_model: /home/cory/yolo2-pytorch/models/training/voc0712_template/voc0712_template_100.h5
+train_output_dir: /home/cory/yolo2-pytorch/models/training/voc0712_mask
 network_size_rand_period: 10
 inp_size: [416, 416]
 out_size: [13, 13] # inp_size / 32
@@ -14,8 +14,8 @@ optimizer: SGD  # 'SGD, Adam'
 opt_param: all  # 'all, conv345'
 
 start_step: 0
-lr_epoch: [0, 60, 90]
-lr_val: [!!float 1e-3, !!float 1e-4, !!float 1e-5]
+lr_epoch: [0, 100]
+lr_val: [!!float 1e-5, !!float 1e-6]
 max_epoch: 200
 
 # SGD only
@@ -38,7 +38,6 @@ val_images: /home/cory/yolo2-pytorch/train_data/voc/voc_test_images.txt
 val_labels: /home/cory/yolo2-pytorch/train_data/voc/voc_test_labels.txt
 batch_size: 1
 train_batch_size: 12
-val_batch_size: 12
 
 # log & display
 disp_interval: 10
