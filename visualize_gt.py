@@ -9,7 +9,7 @@ def plot_vis(image_path, label_path):
     for label in label_file.readlines():
         values = label.strip().split(' ')
         label = values[0]
-        official_format = True
+        official_format = False
         label = label.replace('DontCare', '')
         if official_format:
             xmin = int(float(values[4]))
@@ -61,8 +61,8 @@ def vis_list_file():
     # image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
     # label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
 
-    image_path = '/home/cory/yolo2-pytorch/kitti_det_images.txt'
-    label_path = '/home/cory/yolo2-pytorch/kitti_det_labels.txt'
+    image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_joint_dis_flow_images.txt'
+    label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_joint_dis_flow_labels.txt'
 
     image_file = open(image_path)
     label_file = open(label_path)

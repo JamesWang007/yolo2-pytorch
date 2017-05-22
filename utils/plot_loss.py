@@ -1,0 +1,43 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+exps = ['voc0712_low_lr',
+        'voc0712_template',
+        'kitti_baseline',
+        'voc0712_anchor',
+        'kitti_new_2_flow_ft',
+        'voc0712_baseline',
+        'voc0712_multiple_anchors',
+        'kitti_new_2_flow_dis']
+log_file1 = '/home/cory/yolo2-pytorch/models/training/' + exps[2] + '/train.log'  # red
+log_file2 = '/home/cory/yolo2-pytorch/models/training/' + exps[7] + '/train.log'  # blue
+log1 = np.genfromtxt(log_file1, delimiter=', ')
+log2 = np.genfromtxt(log_file2, delimiter=', ')
+
+
+def moving_avg(x, N):
+    return np.convolve(x, np.ones((N,))/N, mode='valid')
+
+begin_index = 100
+end_index = min(log1.shape[0], log2.shape[0])
+N_avg = 5
+N_log_per_epoch = 100
+x = np.arange(begin_index, end_index - N_avg + 1, dtype=np.float32)
+x /= N_log_per_epoch
+print()
+s1 = moving_avg(log1[begin_index:end_index, 2], N_avg)
+s2 = moving_avg(log2[begin_index:end_index, 2], N_avg)
+
+log_scale = True
+if log_scale:
+    s1 = np.log(s1)
+    s2 = np.log(s2)
+
+if log_file1 != log_file2:
+    plt.plot(x, s1, 'r-', x, s2, 'b-')
+else:
+    plt.plot(x, s1, 'r-')
+
+axes = plt.gca()
+# plt.ylim([0, 1])
+plt.show()

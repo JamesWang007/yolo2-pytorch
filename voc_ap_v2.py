@@ -1,38 +1,17 @@
 import os
 import cv2
-import torch
 import numpy as np
 import pickle
 
-from darknet import Darknet19
-import utils.yolo as yolo_utils
+from darknet_v2 import Darknet19
+import utils.yolo_v2 as yolo_utils
 import utils.network as net_utils
 from utils.timer import Timer
 from datasets.pascal_voc import VOCDataset
-import cfgs.config as cfg
-
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+from cfgs.config_v2 import add_cfg
 
 
-def preprocess(fname):
-    # return fname
-    image = cv2.imread(fname)
-    im_data = np.expand_dims(yolo_utils.preprocess_test(image, cfg.inp_size), 0)
-    return image, im_data
-
-
-# hyper-parameters
-# ------------
-imdb_name = cfg.imdb_test
-output_dir = cfg.test_output_dir
-
-max_per_image = 300
-thresh = 0.001
-vis = False
-# ------------
-
-
-def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
+def test_net(net, cfg, imdb, max_per_image=300, thresh=0.001, output_dir=None, vis=False):
     num_images = imdb.num_images
 
     # all detections are collected into:
@@ -107,37 +86,48 @@ def test_net(net, imdb, max_per_image=300, thresh=0.5, vis=False):
     return mAP
 
 
-def test_voc_ap(model):
-    print(model)
-    imdb = VOCDataset(imdb_name, cfg.DATA_DIR, cfg.batch_size,
-                      yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg.inp_size)
+def test_voc_ap(model, cfg):
+    imdb_name = 'voc_2007_test'
+    output_dir = 'models/testing/' + cfg['exp_name']
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    net = Darknet19()
+    imdb = VOCDataset(imdb_name, 'data', cfg['batch_size'],
+                      yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg['inp_size'])
+
+    net = Darknet19(cfg)
     net_utils.load_net(model, net)
 
     net.cuda()
     net.eval()
 
-    mAP = test_net(net, imdb, max_per_image, thresh, vis)
+    mAP = test_net(net, cfg, imdb, max_per_image=300, thresh=0.001, output_dir=output_dir, vis=False)
 
     imdb.close()
     return mAP
 
 
+def main():
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
+    dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
+    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline.yaml'
+
+    cfg = dict()
+    add_cfg(cfg, dataset_yaml)
+    add_cfg(cfg, exp_yaml)
+
+    epoch = 20
+
+    model_dir = cfg['train_output_dir']
+    model_name = cfg['exp_name']
+    model = model_dir + '/' + model_name + '_' + str(epoch) + '.h5'
+    # model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
+    print(model)
+    test_voc_ap(model, cfg)
+
 if __name__ == '__main__':
-    # voc0712_ft,
-    model_dir = '/home/cory/yolo2-pytorch/models/training'
-    exp_candidates = [('voc0712_template', 15),
-                      ('voc0712_low_lr', 90),
-                      ('voc0712_box_mask', 40),
-                      ('voc0712_anchor', 100),
-                      ('voc0712_baseline', 20),
-                      ('voc0712_multiple_anchors', 199),
-                      ('voc0712_one_anchor', 120)]
-    choice = 6
-    exp = exp_candidates[choice]
-    model = model_dir + '/' + exp[0] + '/' + exp[0] + '_' + str(exp[1]) + '.h5'
-    test_voc_ap(model)
+    main()
 
     # one anchor (1:1 anchor)
     # 0.6212  20
@@ -147,7 +137,6 @@ if __name__ == '__main__':
     # 0.7017  60
     # 0.7018  70
     # 0.7027  80
-    # 0.7033  120
     # 0.7033  160
 
     # voc_template

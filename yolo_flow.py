@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 import torch
 
+os.environ['DATASET'] = 'kitti'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 import cfgs.config as cfg
@@ -53,15 +54,15 @@ def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
 
 def detect_by_flow(frame_index,  conv5_feat, current_frame, image_path, key_frame_path):
     t = time.time()
-    # flow = spynet_flow(image_path, key_frame_path)
-    flow = dis_flow(image_path, key_frame_path)
+    flow = spynet_flow(image_path, key_frame_path)
+    # flow = dis_flow(image_path, key_frame_path)
     # print('flow sum =', sum(flow.ravel()))
-    print('flow', time.time() - t)
+    # print('flow', time.time() - t)
 
     t = time.time()
     flow_rgb = draw_hsv(flow)
     cv2.imwrite('output/flow/flow_{:04d}.jpg'.format(frame_index), flow_rgb)
-    print('flow_rgb', time.time() - t)
+    # print('flow_rgb', time.time() - t)
 
     t = time.time()
     feat_size = cfg.inp_size[1] // 32, cfg.inp_size[0] // 32
@@ -69,25 +70,25 @@ def detect_by_flow(frame_index,  conv5_feat, current_frame, image_path, key_fram
     flow_feat_hsv = draw_hsv(flow_feat, ratio=50)
     cv2.imwrite('output/flow_feat/flow_{:04d}.jpg'.format(frame_index), flow_feat_hsv)
     # print('flow_feat sum =', sum(flow_feat.ravel()))
-    print('flow_feat_hsv', time.time() - t)
+    # print('flow_feat_hsv', time.time() - t)
 
     t = time.time()
     img_warp = warp_flow(current_frame, flow)
     # cv2.imshow('img_warp', img_warp)
     cv2.imwrite('output/warp/warp_{:04d}.jpg'.format(frame_index), img_warp)
-    print('warp_flow', time.time() - t)
+    # print('warp_flow', time.time() - t)
 
     t = time.time()
     conv5_shifted = shift_filter(conv5_feat, flow_feat)
-    print('shift_filter', time.time() - t)
+    # print('shift_filter', time.time() - t)
     t = time.time()
     # feat_warp = plot_feature_map(conv5_shifted, resize_ratio=10) * 255.
     # cv2.imwrite('output/feat_warp/warp_{:04d}.jpg'.format(frame_index), feat_warp)
-    print('feat_warp', time.time() - t)
+    # print('feat_warp', time.time() - t)
 
     t = time.time()
     conv5_shifted_gpu = torch.FloatTensor(conv5_shifted).cuda()
-    print('conv5_shifted_gpu', time.time() - t)
+    # print('conv5_shifted_gpu', time.time() - t)
     return conv5_shifted_gpu
 
 
@@ -97,13 +98,15 @@ def main():
     shutil.copytree('output_template', 'output')
 
     # trained_model = cfg.trained_model
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_60.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_ft/kitti_new_2_flow_ft_2.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_10.h5'
     thresh = 0.5
     use_kitti = True
-    image_dir = '/home/cory/KITTI_Dataset/data_tracking_image_2/training/image_02/0013'
+
     # car = 1 5
     # pedestrian = 13 17
 
@@ -114,22 +117,15 @@ def main():
     print('load model successfully')
     # print(net)
 
-    def str_index(filename):
-        if use_kitti:
-            return filename
-        begin_pos = filename.rfind('_') + 1
-        end_pos = filename.rfind('.')
-        str_v = filename[begin_pos: end_pos]
-        return int(str_v)
-
-    image_extensions = ['.jpg', '.JPG', '.png', '.PNG']
-    image_abs_paths = sorted([os.path.join(image_dir, name)
-                              for name in os.listdir(image_dir)
-                              if name[-4:] in image_extensions],
-                             key=str_index)
+    # img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
+    img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/0001_images.txt')
+    # img_files = open('/home/cory/yolo2-pytorch/train_data/ImageNetVID_test.txt')
+    # img_files = open('/home/cory/yolo2-pytorch/train_data/vid04_images.txt')
+    image_abs_paths = img_files.readlines()
+    image_abs_paths = [f.strip() for f in image_abs_paths]
 
     key_frame_path = ''
-    detection_period = 5
+    detection_period = 1
     use_flow = False
 
     kitti_filename = 'yolo_flow_kitti_det.txt'
@@ -162,7 +158,7 @@ def main():
             t1 = time.time()
             conv5_shifted_gpu = detect_by_flow(i, feature, image, image_path, key_frame_path)
             t2 = time.time()
-            print('detect_by_flow', t2 - t1)
+            # print('detect_by_flow', t2 - t1)
             bbox_pred, iou_pred, prob_pred = net.feed_feature(Variable(conv5_shifted_gpu), layer=layer_of_flow)
 
         else:

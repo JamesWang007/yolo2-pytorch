@@ -9,6 +9,7 @@ pretrained_fname = '/home/cory/yolo2-pytorch/data/darknet19.weights.npz'
 network_size_rand_period = 10
 inp_size_candidates = [(1216, 352)]
 inp_size = np.array([1216, 352], dtype=np.int)   # w, h
+# inp_size = np.array([992, 544], dtype=np.int)
 out_size = inp_size / 32
 
 

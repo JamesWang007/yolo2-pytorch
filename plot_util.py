@@ -23,10 +23,10 @@ def plot_feature_map(features, border=2, resize_ratio=2):
     map_border_num = int(math.ceil(math.sqrt(num_channel)))
     map_h = (feat_h + border) * map_border_num
     map_w = (feat_w + border) * map_border_num
-    print('create act map {:d} x {:d}'.format(map_h, map_w))
+    # print('create act map {:d} x {:d}'.format(map_h, map_w))
     feature_map_all = np.zeros((map_h, map_w))
 
-    print(features.shape)
+    # print(features.shape)
     all_sum = 0
     idx = 0
     max_val = np.max(features.ravel())

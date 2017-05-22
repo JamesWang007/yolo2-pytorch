@@ -109,7 +109,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, (start_epoch + 5) * imdb.b
     # loss
     bbox_loss += net.bbox_loss.data.cpu().numpy()[0]
     iou_loss += net.iou_loss.data.cpu().numpy()[0]
-    cls_loss += net.cls_loss.data.cpu().numpy()[0]
+    cls_loss += net.class_loss.data.cpu().numpy()[0]
     train_loss += net.loss.data.cpu().numpy()[0]
     cnt += 1
 

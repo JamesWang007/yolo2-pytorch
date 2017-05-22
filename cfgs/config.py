@@ -1,8 +1,12 @@
 import os
-from cfgs.config_voc import *
-# from cfgs.config_kitti import *
-from cfgs.exps.voc0712_new_2 import *
-# from cfgs.exps.kitti_ft_exp3 import *
+
+if os.environ.get('DATASET') == 'kitti':
+    from cfgs.config_kitti import *
+    # from cfgs.config_voc import *
+    from cfgs.exps.kitti_ft_exp3 import *
+else:
+    from cfgs.config_voc import *
+    from cfgs.exps.voc0712_new_2 import *
 
 # 10.5 ~ 11 ms  yolo_flow  detection only  OpenBLAS
 # 0.75 s/batch

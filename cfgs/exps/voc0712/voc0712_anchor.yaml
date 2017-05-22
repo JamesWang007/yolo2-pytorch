@@ -14,9 +14,9 @@ optimizer: SGD  # 'SGD, Adam'
 opt_param: all  # 'all, conv345'
 
 start_step: 0
-lr_epoch: [0, 60, 90]
+lr_epoch: [0, 20, 40]
 lr_val: [!!float 1e-3, !!float 1e-4, !!float 1e-5]
-max_epoch: 200
+max_epoch: 100
 
 # SGD only
 weight_decay: 0.0005
@@ -42,8 +42,6 @@ val_batch_size: 8
 
 # log & display
 disp_interval: 10
-log_file: /home/cory/yolo2-pytorch/models/training/voc0712_ft/train.log
-check_point_file: /home/cory/yolo2-pytorch/models/training/voc0712_ft/check_point.txt
 
 anchors: [[1.3221, 1.73145], [3.19275, 4.00944], [5.05587, 8.09892], [9.47112, 4.84053], [11.2364, 10.0071]]
 

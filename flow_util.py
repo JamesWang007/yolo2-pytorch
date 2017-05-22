@@ -3,7 +3,10 @@ import cv2
 import numpy as np
 from subprocess import check_output
 import sys
+import os
+
 sys.path.append('/home/cory/spynet')
+os.environ['TERM'] = 'xterm-256color'
 from spynet import Spynet
 
 
@@ -11,7 +14,7 @@ def shift_filter(feature, flow):
     # feature shape = (batch, filters, h, w)
     shifted_feature = list()
     for feat in feature:
-        print(feat.shape)
+        # print(feat.shape)
         for i in range(feat.shape[0]):
             act2d = feat[i, ...]
             act2d = act2d[:, :, np.newaxis]
@@ -43,7 +46,7 @@ def spynet_flow(image_path1, image_path2):
     t1 = time.time()
     flow = spynet.compute_flow(image_path1, image_path2)
     t2 = time.time()
-    print(t2 -t1)
+    # print(t2 -t1)
     flow = np.transpose(flow[0], (1, 2, 0))  # 2 x h x w--> h x w x 2
     return flow
 
@@ -58,7 +61,7 @@ def dis_flow(img_path1, img_path2):
             return None
         w = np.fromfile(f, np.int32, count=1)[0]
         h = np.fromfile(f, np.int32, count=1)[0]
-        print('Reading %d x %d flo file' % (w, h))
+        # print('Reading %d x %d flo file' % (w, h))
         data = np.fromfile(f, np.float32, count=2 * w * h)
         # Reshape data into 3D array (columns, rows, bands)
         data2D = np.reshape(data, (h, w, 2))
@@ -77,7 +80,7 @@ def get_flow_for_filter(flow, feat_map_size):
                                         dsize=(filter_map_width, filter_map_height),
                                         interpolation=cv2.INTER_CUBIC)])
     flow_small = flow_small.transpose([1, 2, 0])
-    print('flow_small.shape', flow_small.shape)
+    # print('flow_small.shape', flow_small.shape)
     return flow_small
 
 

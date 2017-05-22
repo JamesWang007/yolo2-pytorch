@@ -10,10 +10,12 @@ from train_util_v2 import *
 from utils.timer import Timer
 
 # dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti_new_2.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline.yaml'
 dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_mask.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_box_mask_0.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_one_anchor.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_anchor.yaml'
+# exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712_adam_20.yaml'
 
 cfg = dict()
 add_cfg(cfg, dataset_yaml)
@@ -26,7 +28,7 @@ imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
 print('imdb load data succeeded')
 net = Darknet19(cfg)
 
-gpu_id = 1
+gpu_id = 0
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 
 os.makedirs(cfg['train_output_dir'], exist_ok=True)
@@ -85,18 +87,19 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.ba
 
     # when go to next epoch
     if imdb.epoch > prev_epoch:
-        # save trained weights
-        save_name = os.path.join(cfg['train_output_dir'], '{}_{}.h5'.format(cfg['exp_name'], imdb.epoch))
-        net_utils.save_net(save_name, net)
-        print('save model: {}'.format(save_name))
+        if cfg['exp_name'] != 'voc0712_overfit':
+            # save trained weights
+            save_name = os.path.join(cfg['train_output_dir'], '{}_{}.h5'.format(cfg['exp_name'], imdb.epoch))
+            net_utils.save_net(save_name, net)
+            print('save model: {}'.format(save_name))
 
-        # update check_point file
-        ckp = open(os.path.join(cfg['train_output_dir'], 'check_point.txt'), 'w')
-        ckp.write(str(imdb.epoch))
-        ckp.close()
+            # update check_point file
+            ckp = open(os.path.join(cfg['train_output_dir'], 'check_point.txt'), 'w')
+            ckp.write(str(imdb.epoch))
+            ckp.close()
 
-        # prepare optimizer for next epoch
-        optimizer = get_optimizer(cfg, net, imdb.epoch)
+            # prepare optimizer for next epoch
+            optimizer = get_optimizer(cfg, net, imdb.epoch)
 
     # forward
     im_data = net_utils.np_to_variable(batch['images'], is_cuda=True, volatile=False).permute(0, 3, 1, 2)
@@ -105,7 +108,7 @@ for step in range(start_epoch * imdb.batch_per_epoch, cfg['max_epoch'] * imdb.ba
     # loss
     bbox_loss += net.bbox_loss.data.cpu().numpy()[0]
     iou_loss += net.iou_loss.data.cpu().numpy()[0]
-    cls_loss += net.cls_loss.data.cpu().numpy()[0]
+    cls_loss += net.class_loss.data.cpu().numpy()[0]
     train_loss += net.loss.data.cpu().numpy()[0]
     cnt += 1
     # print('train_loss', net.loss.data.cpu().numpy()[0])

@@ -52,8 +52,8 @@ def _process_batch(data):
     _iou_mask = np.zeros([hw, num_anchors, 1], dtype=np.float)
 
     _boxes = np.zeros([hw, num_anchors, 4], dtype=np.float)
-    _boxes[:, :, 0:2] = 0.5
-    _boxes[:, :, 2:4] = 1.0
+    # _boxes[:, :, 0:2] = 0.5
+    # _boxes[:, :, 2:4] = 1.0
     # debug mask_val
     # _box_mask = np.zeros([hw, num_anchors, 1], dtype=np.float) + 0.01
     _box_mask = np.zeros([hw, num_anchors, 1], dtype=np.float)
@@ -179,12 +179,12 @@ class Darknet19(nn.Module):
         # train
         self.bbox_loss = None
         self.iou_loss = None
-        self.cls_loss = None
+        self.class_loss = None
         self.pool = Pool(processes=10)
 
     @property
     def loss(self):
-        return self.bbox_loss + self.iou_loss + self.cls_loss
+        return self.bbox_loss + self.iou_loss + self.class_loss
 
     def forward(self, im_data, gt_boxes=None, gt_classes=None, inp_size=None):
         conv1s = self.conv1s(im_data)
@@ -198,26 +198,31 @@ class Darknet19(nn.Module):
         # for detection
         # bsize, c, h, w -> bsize, h, w, c -> bsize, h x w, num_anchors, 5+num_classes
         bsize, _, h, w = conv5.size()
-        # assert bsize == 1, 'detection only support one image per batch'
         conv5_reshaped = conv5.permute(0, 2, 3, 1).contiguous().view(bsize, -1, self.cfg['num_anchors'],
                                                                      self.cfg['num_classes'] + 5)
 
         # tx, ty, tw, th, to -> sig(tx), sig(ty), exp(tw), exp(th), sig(to)
-        xy_pred = F.sigmoid(conv5_reshaped[:, :, :, 0:2])
-        wh_pred = torch.exp(conv5_reshaped[:, :, :, 2:4])
-        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
-        iou_pred = F.sigmoid(conv5_reshaped[:, :, :, 4:5])
+        # [batch, cell, anchor, prediction]
+        xy_pred_raw = conv5_reshaped[:, :, :, 0:2]
+        wh_pred_raw = conv5_reshaped[:, :, :, 2:4]
+        bbox_pred_raw = torch.cat([xy_pred_raw, wh_pred_raw], 3)
+        iou_pred_raw = conv5_reshaped[:, :, :, 4:5]
 
-        score_pred = conv5_reshaped[:, :, :, 5:].contiguous()
-        prob_pred = F.softmax(score_pred.view(-1, score_pred.size()[-1])).view_as(score_pred)
+        xy_pred = F.sigmoid(xy_pred_raw)
+        wh_pred = torch.exp(wh_pred_raw)
+        bbox_pred = torch.cat([xy_pred, wh_pred], 3)
+        iou_pred = F.sigmoid(iou_pred_raw)
+
+        class_pred_raw = conv5_reshaped[:, :, :, 5:].contiguous()
+        class_pred = F.softmax(class_pred_raw.view(-1, self.cfg['num_classes'])).view_as(class_pred_raw)
 
         debug = False
         if debug:
             bbox_pred_np = bbox_pred.data.cpu().numpy()
             iou_pred_np = iou_pred.data.cpu().numpy()
-            score_pred_np = score_pred.data.cpu().numpy()
-            prob_pred_np = prob_pred.data.cpu().numpy()
-            print(np.max(bbox_pred_np), np.max(iou_pred_np), np.max(score_pred_np), np.max(prob_pred_np))
+            class_pred_raw_np = class_pred_raw.data.cpu().numpy()
+            class_pred_np = class_pred.data.cpu().numpy()
+            print(np.max(bbox_pred_np), np.max(iou_pred_np), np.max(class_pred_raw_np), np.max(class_pred_np))
 
         # for training
         if self.training:
@@ -235,14 +240,13 @@ class Darknet19(nn.Module):
 
             num_boxes = sum((len(boxes) for boxes in gt_boxes))
             box_mask = box_mask.expand_as(_boxes)
-            class_mask = class_mask.expand_as(prob_pred)
+            class_mask = class_mask.expand_as(class_pred)
 
-            # debug use
             self.bbox_loss = nn.MSELoss(size_average=False)(bbox_pred * box_mask, _boxes * box_mask) / num_boxes
             self.iou_loss = nn.MSELoss(size_average=False)(iou_pred * iou_mask, _ious * iou_mask) / num_boxes
-            self.cls_loss = nn.MSELoss(size_average=False)(prob_pred * class_mask, _classes * class_mask) / num_boxes
+            self.class_loss = nn.MSELoss(size_average=False)(class_pred * class_mask, _classes * class_mask) / num_boxes
 
-        return bbox_pred, iou_pred, prob_pred
+        return bbox_pred, iou_pred, class_pred
 
     def _build_target(self, bbox_pred_np, gt_boxes, gt_classes, iou_pred_np, inp_size):
         """

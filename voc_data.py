@@ -43,3 +43,4 @@ def convert_main():
     print('total label:', len(all_id))
     print('train', train_counter)
     print('test', test_counter)
+weights

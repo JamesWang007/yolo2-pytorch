@@ -6,6 +6,7 @@ import cv2
 import torch
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['DATASET'] = 'kitti'
 
 import cfgs.config as cfg
 import utils.network as net_utils
@@ -59,8 +60,9 @@ def main():
     shutil.rmtree('kitti_det_output', ignore_errors=True)
     os.makedirs('kitti_det_output')
 
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_fixed/kitti_new_2_fixed_100.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_voc0712_baseline_35.h52/kitti_new_2_100.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_60.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_spy/kitti_new_2_flow_spy_60.h5'
     thresh = 0.5
     use_kitti = True
 
@@ -84,7 +86,7 @@ def main():
         str_v = filename[begin_pos: end_pos]
         return int(str_v)
 
-    eval_use_dir = True
+    eval_use_dir = False
     if eval_use_dir:
         image_extensions = ['.jpg', '.JPG', '.png', '.PNG']
         image_dir = '/home/cory/KITTI_Dataset/data_object_image_2/testing/image_2'
@@ -131,7 +133,7 @@ def main():
         total_time = t_total.toc()
         format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms) %s'
         print(format_str % (
-            i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000), image_path)
+            i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000, image_path))
 
         t_det.clear()
         t_total.clear()
