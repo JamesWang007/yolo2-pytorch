@@ -12,7 +12,7 @@ log2 = np.genfromtxt(log_file2, delimiter=', ')
 def moving_avg(x, N):
     return np.convolve(x, np.ones((N,))/N, mode='valid')
 
-begin_index = 100
+begin_index = min(0, log1.shape[0], log2.shape[0])
 end_index = min(log1.shape[0], log2.shape[0])
 N_avg = 5
 N_log_per_epoch = 100

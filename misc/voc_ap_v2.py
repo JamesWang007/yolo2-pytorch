@@ -117,7 +117,7 @@ def main():
     add_cfg(cfg, dataset_yaml)
     add_cfg(cfg, exp_yaml)
 
-    epoch = 5
+    epoch = 10
 
     model_dir = cfg['train_output_dir']
     model_name = cfg['exp_name']
@@ -138,6 +138,7 @@ if __name__ == '__main__':
 
     # baseline_v3 rand batch32
     # 0.2377  5
+    # 0.4984  10
 
     # one anchor (1:1 anchor)
     # 0.6212  20

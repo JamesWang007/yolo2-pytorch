@@ -48,14 +48,14 @@ def train_main():
     cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
 
     # runtime setting
-    gpu_id = 0
+    gpu_id = 1
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
     os.makedirs(cfg['train_output_dir'], exist_ok=True)
 
     # data loader
-    batch_size = cfg['train_batch_size']
+    # batch_size = cfg['train_batch_size']
+    batch_size = 16
     dataset = DetectionDataset(cfg)
-    dataloader = DataLoaderX(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False, drop_last=True)
     print('load dataset succeeded')
     net = Darknet19(cfg)
 
@@ -81,18 +81,16 @@ def train_main():
     print('inp_size_candidates', cfg['inp_size_candidates'])
     print('-------------------------------')
 
-    # default input size
-    network_size = np.array(cfg['inp_size'], dtype=np.int)
-
-    t0 = time.time()
     timer = Timer()
     try:
         for epoch in range(start_epoch, cfg['max_epoch']):
+            time_epoch_begin = time.time()
 
             train_loss = 0
             bbox_loss, iou_loss, cls_loss = 0., 0., 0.
             cnt = 0
             optimizer = get_optimizer(cfg, net, epoch)
+            dataloader = DataLoaderX(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
             for step, data in enumerate(dataloader):
                 timer.tic()
@@ -100,6 +98,8 @@ def train_main():
                 im_data = Variable(inputs.cuda())
                 gt_boxes, gt_classes = restore_gt_numpy(labels)
 
+                network_size = np.array(im_data.data.size()[2: 4], dtype=np.int)
+                # print('forward network_size', network_size)
                 x = net.forward(im_data, gt_boxes, gt_classes, network_size)
 
                 # loss
@@ -133,13 +133,19 @@ def train_main():
                     bbox_loss, iou_loss, cls_loss = 0., 0., 0.
                     cnt = 0
                     timer.clear()
+                # break
 
             # epoch_done
+            # del dataloader
+
             # save trained weights
             ckp_epoch = epoch + 1
             save_name = os.path.join(cfg['train_output_dir'], '{}_{}.h5'.format(cfg['exp_name'], ckp_epoch))
             net_utils.save_net(save_name, net)
             print('save model: {}'.format(save_name))
+
+            time_epoch_end = time.time()
+            print('{:.2f} seconds for this epoch'.format(time_epoch_end - time_epoch_begin))
 
             # update check_point file
             ckp = open(os.path.join(cfg['train_output_dir'], 'check_point.txt'), 'w')

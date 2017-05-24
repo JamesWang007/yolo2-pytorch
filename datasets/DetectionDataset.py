@@ -29,19 +29,22 @@ class DetectionDataset(data.Dataset):
         self.inp_size = cfg['inp_size']
 
     def __getitem__(self, index):
+        raise NotImplemented
+
+    def __len__(self):
+        return len(self.image_paths)
+
+    def get_train_data(self, index, network_size):
         img = Image.open(self.image_paths[index]).convert('RGB')
         gt = self.annotations[index]
         gt.update({'img_size': img.size})
 
         # random transforms (scale, color, flip)
-        im, boxes = affine_transform(img, gt['boxes'], self.inp_size)
+        im, boxes = affine_transform(img, gt['boxes'], network_size)
         gt.update({'boxes': boxes})
         target_np = encode_to_np(gt)
         im_tensor = torch.from_numpy(im.transpose((2, 0, 1))).float()
         return im_tensor, target_np
-
-    def __len__(self):
-        return len(self.image_paths)
 
     def input_size(self):
         return self.inp_size
@@ -52,6 +55,7 @@ class DetectionDataset(data.Dataset):
         rand_id = np.random.randint(0, len(self.cfg['inp_size_candidates']))
         rand_network_size = self.cfg['inp_size_candidates'][rand_id]
         self.inp_size = rand_network_size
+        # print('change_input_size_rand', rand_network_size)
 
     def load_dataset(self, label_map):
         remove_id_list = list()

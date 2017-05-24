@@ -5,27 +5,18 @@ import torch.utils.data as data
 from torch.autograd import Variable
 
 from datasets.DetectionDataset import DetectionDataset
+from datasets.DataLoaderIterX import DataLoaderIterX
 
 
-class DataLoaderIterX(data.DataLoaderIter):
-    # modify /usr/local/lib/python3.5/dist-packages/torch/utils/data/__init__.py
-    # add this line: from .dataloader import DataLoaderIter
-    # thus, let data.DataLoaderIter class become publicly available to inherent
-
-    def __init__(self, loader, random_period=10):
-        super(DataLoaderIterX, self).__init__(loader)
-        self.batch_read_count = 0
-        self.random_period = random_period
-
-    def __next__(self):
-        self.batch_read_count += 1
-        if self.batch_read_count % self.random_period == 0:
-            self.dataset.change_input_size_rand()
-        return super(DataLoaderIterX, self).__next__()
+# modify /usr/local/lib/python3.5/dist-packages/torch/utils/data/__init__.py
+# add this line: from .dataloader import DataLoaderIter
+# thus, let data.DataLoaderIter class become publicly available to inherent
+# class DataLoaderIterX(data.DataLoaderIter):
+#     pass
 
 
 class DataLoaderX(data.DataLoader):
-    def __init__(self, dataset, batch_size=1, shuffle=False, sampler=None, num_workers=0,
+    def __init__(self, dataset, batch_size=1, shuffle=False, sampler=None, num_workers=1,
                  pin_memory=False, drop_last=False):
         super(DataLoaderX, self).__init__(dataset, batch_size=batch_size, shuffle=shuffle, sampler=sampler,
                                           num_workers=num_workers, pin_memory=pin_memory, drop_last=drop_last)
