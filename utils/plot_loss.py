@@ -1,16 +1,10 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-exps = ['voc0712_low_lr',
-        'voc0712_template',
-        'kitti_baseline',
-        'voc0712_anchor',
-        'kitti_new_2_flow_ft',
-        'voc0712_baseline',
-        'voc0712_multiple_anchors',
-        'kitti_new_2_flow_dis']
-log_file1 = '/home/cory/yolo2-pytorch/models/training/' + exps[2] + '/train.log'  # red
-log_file2 = '/home/cory/yolo2-pytorch/models/training/' + exps[7] + '/train.log'  # blue
+exp1 = 'voc0712_baseline_v3_rand'
+exp2 = 'voc0712_baseline_v3'
+log_file1 = '/home/cory/yolo2-pytorch/models/training/' + exp1 + '/train.log'  # red
+log_file2 = '/home/cory/yolo2-pytorch/models/training/' + exp2 + '/train.log'  # blue
 log1 = np.genfromtxt(log_file1, delimiter=', ')
 log2 = np.genfromtxt(log_file2, delimiter=', ')
 

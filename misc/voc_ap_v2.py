@@ -92,7 +92,7 @@ def test_voc_ap(model, cfg):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    imdb = VOCDataset(imdb_name, 'data', cfg['batch_size'],
+    imdb = VOCDataset(imdb_name, '../data', cfg['batch_size'],
                       yolo_utils.preprocess_test, processes=4, shuffle=False, dst_size=cfg['inp_size'])
 
     net = Darknet19(cfg)
@@ -108,16 +108,16 @@ def test_voc_ap(model, cfg):
 
 
 def main():
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
     dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline.yaml'
+    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
 
     cfg = dict()
     add_cfg(cfg, dataset_yaml)
     add_cfg(cfg, exp_yaml)
 
-    epoch = 20
+    epoch = 5
 
     model_dir = cfg['train_output_dir']
     model_name = cfg['exp_name']
@@ -128,6 +128,16 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    # baseline_v3 416x416
+    # 0.1852  3
+    # 0.3363  5
+    # 0.5381  10
+    # 0.6063  20
+    # 0.6791  30
+
+    # baseline_v3 rand batch32
+    # 0.2377  5
 
     # one anchor (1:1 anchor)
     # 0.6212  20

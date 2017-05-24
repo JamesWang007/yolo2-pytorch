@@ -3,11 +3,10 @@ import os
 import numpy as np
 
 import cfgs.config as cfg
-
 import utils.network as net_utils
 from darknet import Darknet19
 from datasets.ImageFileDataset import ImageFileDataset
-from train_util import *
+from train.train_util import *
 from utils.timer import Timer
 
 try:

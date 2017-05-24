@@ -1,9 +1,5 @@
 import os
-import time
 import shutil
-import numpy as np
-import cv2
-import torch
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 os.environ['DATASET'] = 'kitti'
@@ -13,9 +9,8 @@ import utils.network as net_utils
 import utils.yolo as yolo_utils
 from darknet import Darknet19
 from plot_util import *
-from flow_util import *
+from misc.flow_util import *
 from utils.timer import Timer
-from torch.autograd import Variable
 
 
 def preprocess(filename):
@@ -61,8 +56,8 @@ def main():
     os.makedirs('kitti_det_output')
 
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_voc0712_baseline_35.h52/kitti_new_2_100.h5'
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_60.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_spy/kitti_new_2_flow_spy_60.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_199.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_spy/kitti_new_2_flow_spy_60.h5'
     thresh = 0.5
     use_kitti = True
 

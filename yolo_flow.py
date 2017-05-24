@@ -1,8 +1,7 @@
 import os
-import time
 import shutil
-import numpy as np
-import cv2
+import time
+
 import torch
 
 os.environ['DATASET'] = 'kitti'
@@ -13,7 +12,7 @@ import utils.network as net_utils
 import utils.yolo as yolo_utils
 from darknet import Darknet19
 from plot_util import *
-from flow_util import *
+from misc.flow_util import *
 from utils.timer import Timer
 from torch.autograd import Variable
 
@@ -99,7 +98,8 @@ def main():
 
     # trained_model = cfg.trained_model
     # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
+    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_165.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_ft/kitti_new_2_flow_ft_2.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
@@ -139,12 +139,15 @@ def main():
 
     for i, image_path in enumerate(image_abs_paths):
         t_total.tic()
+        t0 = time.time()
         image, im_data = preprocess(image_path)
         im_data = net_utils.np_to_variable(im_data, is_cuda=True, volatile=True).permute(0, 3, 1, 2)
+        t1 = time.time()
+        print('t1', t1 - t0)
 
         layer_of_flow = 'conv4'
         # key frame
-        if i % detection_period == 0 and use_flow:
+        if use_flow and i % detection_period == 0:
             key_frame_path = image_path
             # conv5 feature map
             feature = net.get_feature_map(im_data=im_data, layer=layer_of_flow)
@@ -155,28 +158,33 @@ def main():
 
         t_det.tic()
         if use_flow:
-            t1 = time.time()
             conv5_shifted_gpu = detect_by_flow(i, feature, image, image_path, key_frame_path)
-            t2 = time.time()
-            # print('detect_by_flow', t2 - t1)
             bbox_pred, iou_pred, prob_pred = net.feed_feature(Variable(conv5_shifted_gpu), layer=layer_of_flow)
 
         else:
             bbox_pred, iou_pred, prob_pred = net.forward(im_data)
 
         det_time = t_det.toc()
+        t2 = time.time()
+        print('t2', t2 - t1)
 
         # to numpy
         bbox_pred = bbox_pred.data.cpu().numpy()
         iou_pred = iou_pred.data.cpu().numpy()
         prob_pred = prob_pred.data.cpu().numpy()
 
+        t3 = time.time()
+        print('t3', t3 - t2)
+
         # print bbox_pred.shape, iou_pred.shape, prob_pred.shape
 
         bboxes, scores, cls_inds = yolo_utils.postprocess(bbox_pred, iou_pred, prob_pred, image.shape, cfg, thresh)
+
+        t4 = time.time()
+        print('t4', t4 - t3)
+
         det_obj = detection_objects(bboxes, scores, cls_inds)
         save_as_kitti_format(i, det_obj, kitti_filename, src_label='kitti')
-
         im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
 
         cv2.imshow('detection', im2show)
@@ -186,6 +194,9 @@ def main():
         format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms)'
         print(format_str % (
             i, 1. / det_time, det_time * 1000, 1. / total_time, total_time * 1000))
+
+        t5 = time.time()
+        print('t5', t5 - t4)
 
         t_det.clear()
         t_total.clear()

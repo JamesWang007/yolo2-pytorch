@@ -1,12 +1,12 @@
 import os
+
 import numpy as np
 
-from cfgs.config_v2 import add_cfg
-
 import utils.network as net_utils
+from cfgs.config_v2 import add_cfg
 from darknet_v2 import Darknet19
 from datasets.ImageFileDataset_v2 import ImageFileDataset
-from train_util_v2 import *
+from train.train_util_v2 import *
 from utils.timer import Timer
 
 # dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
@@ -28,7 +28,7 @@ imdb = ImageFileDataset(cfg, ImageFileDataset.preprocess_train,
 print('imdb load data succeeded')
 net = Darknet19(cfg)
 
-gpu_id = 0
+gpu_id = 1
 os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
 
 os.makedirs(cfg['train_output_dir'], exist_ok=True)

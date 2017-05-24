@@ -1,7 +1,8 @@
 import os
-import shutil
+
 import cv2
-import flow_util
+
+from misc import flow_util
 
 
 def find_tracklet_id(img_path):

@@ -1,6 +1,7 @@
 import os
-import numpy as np
 import sys
+
+import numpy as np
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -10,7 +11,7 @@ import utils.network as net_utils
 from darknet_v2 import Darknet19
 from datasets.ImageFileDataset_v2 import ImageFileDataset
 from utils.timer import Timer
-from train_util_v2 import *
+from train.train_util_v2 import *
 
 
 # dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
