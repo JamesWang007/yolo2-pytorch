@@ -107,7 +107,7 @@ def encode_to_np(gt):
     num_type = 8  # 1 + 1 + 2 + 4
     max_label_num_per_image = 50
 
-    data_matrix = np.zeros([max_label_num_per_image, num_type])
+    data_matrix = np.zeros([max_label_num_per_image, num_type], dtype=np.float32)
     data_matrix[0:gt_size, 0] = 1  # valid mask
     data_matrix[0:gt_size, 1] = labels
     data_matrix[0:gt_size, 2:4] = img_size

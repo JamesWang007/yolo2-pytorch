@@ -108,7 +108,7 @@ def test_voc_ap(model, cfg):
 
 
 def main():
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
     dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
     exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
@@ -117,7 +117,7 @@ def main():
     add_cfg(cfg, dataset_yaml)
     add_cfg(cfg, exp_yaml)
 
-    epoch = 10
+    epoch = 120
 
     model_dir = cfg['train_output_dir']
     model_name = cfg['exp_name']
@@ -136,9 +136,12 @@ if __name__ == '__main__':
     # 0.6063  20
     # 0.6791  30
 
-    # baseline_v3 rand batch32
-    # 0.2377  5
-    # 0.4984  10
+    # baseline_v3 rand
+    # 0.5663  10
+    # 0.6560  20
+    # 0.7197  40
+    # 0.7207  80
+    # 0.7203  120
 
     # one anchor (1:1 anchor)
     # 0.6212  20

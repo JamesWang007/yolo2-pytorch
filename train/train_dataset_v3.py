@@ -1,15 +1,15 @@
 import os
 import time
 
-import numpy as np
 from torch.autograd import Variable
 
-import utils.network as net_utils
 from cfgs.config_v2 import load_cfg_yamls
-from darknet_v2 import Darknet19
+from darknet_training_v3 import *
+from darknet_v3 import Darknet19
 from datasets.DataLoaderX import DataLoaderX
 from datasets.DetectionDataset import DetectionDataset
 from train.train_util_v2 import *
+from utils.barrier import Barrier
 from utils.timer import Timer
 
 
@@ -24,37 +24,25 @@ def read_ckp(cfg):
     return start_epoch, use_model
 
 
-def restore_gt_numpy(labels):
-    labels_np = labels.numpy()
-    gt_boxes = list()
-    gt_classes = list()
-    for i in range(labels_np.shape[0]):
-        label = labels_np[i, ...]
-        valid_id = np.where(label[:, 0] == 1)
-        valid_len = np.count_nonzero(label[:, 0] == 1)
-        gt_boxes.append(label[valid_id, 4:8].reshape(valid_len, -1))
-        g = label[valid_id, 1][0].tolist()
-        g = list(map(int, g))
-        gt_classes.append(g)
-    return gt_boxes, gt_classes
-
-
 def train_main():
-    dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
-    # dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-    # exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline.yaml'
+    choice = 1
+    if choice == 0:
+        dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
+        exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
+        gpu_id = 0
+    elif choice == 1:
+        dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+        exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
+        gpu_id = 1
 
     cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
 
     # runtime setting
-    gpu_id = 1
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
     os.makedirs(cfg['train_output_dir'], exist_ok=True)
 
     # data loader
-    # batch_size = cfg['train_batch_size']
-    batch_size = 16
+    batch_size = cfg['train_batch_size']
     dataset = DetectionDataset(cfg)
     print('load dataset succeeded')
     net = Darknet19(cfg)
@@ -68,6 +56,7 @@ def train_main():
 
     # show training parameters
     print('-------------------------------')
+    print('pid', os.getpid())
     print('gpu_id', os.environ.get('CUDA_VISIBLE_DEVICES'))
     print('use_model', use_model)
     print('exp_name', cfg['exp_name'])
@@ -85,67 +74,67 @@ def train_main():
     try:
         for epoch in range(start_epoch, cfg['max_epoch']):
             time_epoch_begin = time.time()
-
-            train_loss = 0
-            bbox_loss, iou_loss, cls_loss = 0., 0., 0.
-            cnt = 0
             optimizer = get_optimizer(cfg, net, epoch)
-            dataloader = DataLoaderX(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+            dataloader = DataLoaderX(dataset, batch_size=batch_size, shuffle=True, num_workers=4, pin_memory=False)
 
             for step, data in enumerate(dataloader):
                 timer.tic()
-                inputs, labels = data
-                im_data = Variable(inputs.cuda())
-                gt_boxes, gt_classes = restore_gt_numpy(labels)
+                barrier = Barrier()
 
-                network_size = np.array(im_data.data.size()[2: 4], dtype=np.int)
-                # print('forward network_size', network_size)
-                x = net.forward(im_data, gt_boxes, gt_classes, network_size)
+                images, labels = data
+                # debug_and_vis(data)
 
-                # loss
-                bbox_loss += net.bbox_loss.data.cpu().numpy()[0]
-                iou_loss += net.iou_loss.data.cpu().numpy()[0]
-                cls_loss += net.class_loss.data.cpu().numpy()[0]
-                train_loss += net.loss.data.cpu().numpy()[0]
-                cnt += 1
+                im_data = Variable(images.cuda())
+                barrier.add(1)
+
+                bbox_pred, iou_pred, class_pred = net.forward(im_data)
+                barrier.add(2)
+
+                # build training target
+                network_h = int(im_data.data.size()[2])
+                network_w = int(im_data.data.size()[3])
+                network_size_wh = np.array([network_w, network_h])  # (w, h)
+                net_bbox_loss, net_iou_loss, net_class_loss = training_target(
+                    cfg, bbox_pred, class_pred, labels, network_size_wh, iou_pred)
+                barrier.add(3)
 
                 # backward
                 optimizer.zero_grad()
-                net.loss.backward()
+                net_loss = net_bbox_loss + net_iou_loss + net_class_loss
+                net_loss.backward()
                 optimizer.step()
+                barrier.add(4)
 
                 duration = timer.toc()
                 if step % cfg['disp_interval'] == 0:
-                    train_loss /= cnt
-                    bbox_loss /= cnt
-                    iou_loss /= cnt
-                    cls_loss /= cnt
+                    # loss for this step
+                    bbox_loss = net_bbox_loss.data.cpu().numpy()[0]
+                    iou_loss = net_iou_loss.data.cpu().numpy()[0]
+                    cls_loss = net_class_loss.data.cpu().numpy()[0]
+                    train_loss = net_loss.data.cpu().numpy()[0]
+                    barrier.add(5)
+
                     progress_in_epoch = (step + 1) * batch_size / len(dataset)
-                    print('epoch: %d, step: %d (%.2f %%),'
+                    print('epoch %d, step %d (%.2f %%) '
                           'loss: %.3f, bbox_loss: %.3f, iou_loss: %.3f, cls_loss: %.3f (%.2f s/batch)' % (
                               epoch, step, progress_in_epoch * 100, train_loss, bbox_loss, iou_loss, cls_loss,
                               duration))
                     with open(cfg['train_output_dir'] + '/train.log', 'a+') as log:
                         log.write('%d, %d, %.3f, %.3f, %.3f, %.3f, %.2f\n' % (
                             epoch, step, train_loss, bbox_loss, iou_loss, cls_loss, duration))
-
-                    train_loss = 0
-                    bbox_loss, iou_loss, cls_loss = 0., 0., 0.
-                    cnt = 0
                     timer.clear()
-                # break
+                    barrier.add(6)
+                    # barrier.print()
 
             # epoch_done
-            # del dataloader
+            time_epoch_end = time.time()
+            print('{:.2f} seconds for this epoch'.format(time_epoch_end - time_epoch_begin))
 
             # save trained weights
             ckp_epoch = epoch + 1
             save_name = os.path.join(cfg['train_output_dir'], '{}_{}.h5'.format(cfg['exp_name'], ckp_epoch))
             net_utils.save_net(save_name, net)
             print('save model: {}'.format(save_name))
-
-            time_epoch_end = time.time()
-            print('{:.2f} seconds for this epoch'.format(time_epoch_end - time_epoch_begin))
 
             # update check_point file
             ckp = open(os.path.join(cfg['train_output_dir'], 'check_point.txt'), 'w')

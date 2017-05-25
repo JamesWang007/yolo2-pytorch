@@ -4,18 +4,23 @@ import shutil
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 os.environ['DATASET'] = 'kitti'
 
-import cfgs.config as cfg
+from cfgs.config_v2 import load_cfg_yamls
 import utils.network as net_utils
-import utils.yolo as yolo_utils
-from darknet import Darknet19
-from plot_util import *
+import utils.yolo_v2 as yolo_utils
+from darknet_v3 import Darknet19
 from misc.flow_util import *
 from utils.timer import Timer
+
+dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
+exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
+gpu_id = 1
+
+cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
 
 
 def preprocess(filename):
     image = cv2.imread(filename)
-    im_data = np.expand_dims(yolo_utils.preprocess_test((image, None, cfg.inp_size))[0], 0)
+    im_data = np.expand_dims(yolo_utils.preprocess_test((image, None, cfg['inp_size']))[0], 0)
     return image, im_data
 
 
@@ -24,7 +29,7 @@ def detection_objects(bboxes, scores, cls_inds):
     for i in range(len(bboxes)):
         box = bboxes[i]
         score = scores[i]
-        label = cfg.label_names[cls_inds[i]]
+        label = cfg['label_names'][cls_inds[i]]
         objects.append((box, score, label))
     return objects
 
@@ -32,7 +37,7 @@ def detection_objects(bboxes, scores, cls_inds):
 def save_as_kitti_format(frame_id, det_obj, output_dir, src_label='voc'):
     # 'Pedestrian 0.00 0 -0.20 712.40 143.00 810.73 307.92 1.89 0.48 1.20 1.84 1.47 8.41 0.01'
     # 0 -1 car 0 0 0 1078 142 1126 164 0 0 0 0 0 0 0.415537
-    with open(output_dir + '{:06d}.txt'.format(frame_id), 'w') as file:
+    with open(output_dir + '/{:06d}.txt'.format(frame_id), 'w') as file:
         for det in det_obj:
             bbox = det[0]
             score = det[1]
@@ -50,53 +55,35 @@ def save_as_kitti_format(frame_id, det_obj, output_dir, src_label='voc'):
 
 def main():
 
-    shutil.rmtree('output', ignore_errors=True)
-    shutil.copytree('output_template', 'output')
-    shutil.rmtree('kitti_det_output', ignore_errors=True)
-    os.makedirs('kitti_det_output')
+    output_dir = '../output'
+    output_template_dir = '../output_template'
+    kitti_output_dir = '../kitti_det_output'
+    input_file_list = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt'
+    vis_enable = False
+    thresh = 0.5
 
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_voc0712_baseline_35.h52/kitti_new_2_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_199.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline_v3/kitti_baseline_v3_7.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_spy/kitti_new_2_flow_spy_60.h5'
-    thresh = 0.5
-    use_kitti = True
 
-    net = Darknet19()
+    shutil.rmtree(output_dir, ignore_errors=True)
+    shutil.rmtree(kitti_output_dir, ignore_errors=True)
+    shutil.copytree(output_template_dir, output_dir)
+    os.makedirs(kitti_output_dir)
+
+    net = Darknet19(cfg)
     net_utils.load_net(trained_model, net)
     net.eval()
     net.cuda()
     print(trained_model)
     print('load model successfully')
 
-    output_dir = 'kitti_det_output/'
-
-    shutil.rmtree(output_dir, ignore_errors=True)
-    os.mkdir(output_dir)
-
-    def str_index(filename):
-        if use_kitti:
-            return filename
-        begin_pos = filename.rfind('_') + 1
-        end_pos = filename.rfind('.')
-        str_v = filename[begin_pos: end_pos]
-        return int(str_v)
-
-    eval_use_dir = False
-    if eval_use_dir:
-        image_extensions = ['.jpg', '.JPG', '.png', '.PNG']
-        image_dir = '/home/cory/KITTI_Dataset/data_object_image_2/testing/image_2'
-        image_abs_paths = sorted([os.path.join(image_dir, name)
-                                  for name in os.listdir(image_dir)
-                                  if name[-4:] in image_extensions],
-                                 key=str_index)
-    else:
-        img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
-        image_abs_paths = img_files.readlines()
-        image_abs_paths = [f.strip() for f in image_abs_paths]
+    img_files = open(input_file_list)
+    image_abs_paths = img_files.readlines()
+    image_abs_paths = [f.strip() for f in image_abs_paths]
 
     t_det = Timer()
     t_total = Timer()
-
     for i, image_path in enumerate(image_abs_paths):
         t_total.tic()
         image, im_data = preprocess(image_path)
@@ -104,26 +91,15 @@ def main():
 
         t_det.tic()
         bbox_pred, iou_pred, prob_pred = net.forward(im_data)
-
         det_time = t_det.toc()
 
-        # to numpy
         bbox_pred = bbox_pred.data.cpu().numpy()
         iou_pred = iou_pred.data.cpu().numpy()
         prob_pred = prob_pred.data.cpu().numpy()
 
-        # print bbox_pred.shape, iou_pred.shape, prob_pred.shape
-
         bboxes, scores, cls_inds = yolo_utils.postprocess(bbox_pred, iou_pred, prob_pred, image.shape, cfg, thresh)
         det_obj = detection_objects(bboxes, scores, cls_inds)
-        save_as_kitti_format(i, det_obj, output_dir, src_label='kitti')
-
-        vis_enable = False
-        if vis_enable:
-            im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
-
-            cv2.imshow('detection', im2show)
-            cv2.imwrite('output/detection/{:04d}.jpg'.format(i), im2show)
+        save_as_kitti_format(i, det_obj, kitti_output_dir, src_label='kitti')
 
         total_time = t_total.toc()
         format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms) %s'
@@ -134,6 +110,9 @@ def main():
         t_total.clear()
 
         if vis_enable:
+            im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
+            cv2.imshow('detection', im2show)
+            cv2.imwrite(output_dir + '/detection/{:04d}.jpg'.format(i), im2show)
             key = cv2.waitKey(0)
             if key == ord('q'):
                 break

@@ -111,8 +111,8 @@ def postprocess(bbox_pred, iou_pred, prob_pred, im_shape, cfg, thresh=0.001):
         np.ascontiguousarray(anchors, dtype=np.float),
         H, W)
     bbox_pred = np.reshape(bbox_pred, [-1, 4])
-    bbox_pred[:, 0::2] *= float(im_shape[1])
-    bbox_pred[:, 1::2] *= float(im_shape[0])
+    bbox_pred[:, 0::2] *= float(im_shape[1])  # w
+    bbox_pred[:, 1::2] *= float(im_shape[0])  # h
     bbox_pred = bbox_pred.astype(np.int)
 
     iou_pred = np.reshape(iou_pred, [-1])
@@ -196,7 +196,7 @@ def get_bbox_targets(images, gt_boxes, cls_inds, dontcares, cfg):
 def draw_detection(im, bboxes, scores, cls_inds, cfg):
     # draw imagelabel_names
     colors = utils.vis_util.colors
-    labels = cfg.label_names
+    labels = cfg['label_names']
 
     imgcv = np.copy(im)
     h, w, _ = imgcv.shape

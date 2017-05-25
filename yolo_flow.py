@@ -99,7 +99,7 @@ def main():
     # trained_model = cfg.trained_model
     # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_165.h5'
+    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_164.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_ft/kitti_new_2_flow_ft_2.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
