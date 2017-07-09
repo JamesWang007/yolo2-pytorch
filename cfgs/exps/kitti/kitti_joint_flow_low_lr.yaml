@@ -1,9 +1,9 @@
 %YAML 1.2
 ---
-exp_name: kitti_baseline_v3
+exp_name: kitti_joint_flow_low_lr
 dataset_name: kitti
-pretrained_model: /home/cory/yolo2-pytorch/data/darknet19.weights.npz
-train_output_dir: /home/cory/yolo2-pytorch/models/training/kitti_baseline_v3
+pretrained_model: /home/cory/project/yolo2-pytorch/data/darknet19.weights.npz
+train_output_dir: /home/cory/project/yolo2-pytorch/models/training/kitti_joint_flow_low_lr
 network_size_rand_period: 10
 inp_size: [1216, 352]
 out_size: [38, 11] # inp_size / 32
@@ -13,7 +13,7 @@ optimizer: SGD  # 'SGD, Adam'
 opt_param: all  # 'all, conv345'
 
 start_step: 0
-lr_epoch: [0, 40, 80]
+lr_epoch: [0, 20, 40]
 lr_val: [!!float 1e-3, !!float 1e-4, !!float 1e-5]
 max_epoch: 200
 
@@ -29,8 +29,8 @@ coord_scale: 1.
 iou_thresh: 0.6
 
 # dataset
-train_images: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_images.txt
-train_labels: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt
+train_images: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_joint_center_images.txt
+train_labels: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_joint_center_labels.txt
 val_images: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_images.txt
 val_labels: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_labels.txt
 batch_size: 1

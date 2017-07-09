@@ -8,12 +8,12 @@ from cfgs.config_v2 import load_cfg_yamls
 import utils.network as net_utils
 import utils.yolo_v2 as yolo_utils
 from darknet_v3 import Darknet19
-from misc.flow_util import *
+from flow.flow_util import *
 from utils.timer import Timer
 
-dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
-gpu_id = 1
+dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
+exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3_yf.yaml'
+gpu_id = 0
 
 cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
 
@@ -58,13 +58,13 @@ def main():
     output_dir = '../output'
     output_template_dir = '../output_template'
     kitti_output_dir = '../kitti_det_output'
-    input_file_list = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt'
+    input_file_list = '/home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_images.txt'
+    # input_file_list = '/home/cory/project/yolo2-pytorch/flow/w01_imgs.txt'
     vis_enable = False
     thresh = 0.5
 
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_voc0712_baseline_35.h52/kitti_new_2_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline_v3/kitti_baseline_v3_7.h5'
-    # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_spy/kitti_new_2_flow_spy_60.h5'
+    trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft_flownet2_joint/' \
+                    'kitti_new_2_flow_center_ft_flownet2_joint_30.h5'
 
     shutil.rmtree(output_dir, ignore_errors=True)
     shutil.rmtree(kitti_output_dir, ignore_errors=True)

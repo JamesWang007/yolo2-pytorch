@@ -1,4 +1,5 @@
 import torch
+from train.yellowfin import YFOptimizer
 
 
 def lookup_lr(cfg, ep):
@@ -43,6 +44,14 @@ def get_optimizer(cfg, net, epoch):
                                                  {'params': net.conv5.parameters()}],
                                          weight_decay=cfg['weight_decay'],
                                          lr=lr)
+    elif cfg['optimizer'] == 'YF':
+        if cfg['opt_param'] == 'all':
+            optimizer = YFOptimizer(var_list=net.parameters())
+        elif cfg['opt_param'] == 'conv345':
+            optimizer = YFOptimizer(var_list=[{'params': net.conv3.parameters()},
+                                              {'params': net.conv4.parameters()},
+                                              {'params': net.conv5.parameters()}])
+
     assert optimizer is not None
 
     print('optimizer_lr =', get_optimizer_lr(optimizer))

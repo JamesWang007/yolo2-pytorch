@@ -5,9 +5,9 @@ from subprocess import check_output
 import sys
 import os
 
-sys.path.append('/home/cory/spynet')
+sys.path.append('/home/cory/project/spynet')
 os.environ['TERM'] = 'xterm-256color'
-from spynet import Spynet
+# from spynet import Spynet
 
 
 def shift_filter(feature, flow):
@@ -38,7 +38,7 @@ def shift_filter(feature, flow):
     return np.asarray([shifted_feature])
 
 
-spynet = Spynet()
+# spynet = Spynet()
 
 
 def spynet_flow(image_path1, image_path2):
@@ -51,10 +51,8 @@ def spynet_flow(image_path1, image_path2):
     return flow
 
 
-def dis_flow(img_path1, img_path2):
-    out = check_output(['./run_of.sh ' + img_path1 + ' ' + img_path2], shell=True)
-    # print(out)
-    with open('flow.flo', 'rb') as f:
+def read_flo_file(filename):
+    with open(filename, 'rb') as f:
         magic = np.fromfile(f, np.float32, count=1)
         if 202021.25 != magic:
             print('Magic number incorrect. Invalid .flo file')
@@ -66,6 +64,20 @@ def dis_flow(img_path1, img_path2):
         # Reshape data into 3D array (columns, rows, bands)
         data2D = np.reshape(data, (h, w, 2))
         return data2D
+
+
+def dis_flow(img_path1, img_path2):
+    out = check_output(['./run_of.sh ' + img_path1 + ' ' + img_path2], shell=True)
+    flow_val = read_flo_file('flow.flo')
+    return flow_val
+    # print(out)
+
+
+def flownet2_flow(img_path1, img_path2):
+    out = check_output(['./run_of.sh ' + img_path1 + ' ' + img_path2], shell=True)
+    flow_val = read_flo_file('flow.flo')
+    return flow_val
+    # print(out)
 
 
 def get_flow_for_filter(flow, feat_map_size):

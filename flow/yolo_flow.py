@@ -7,19 +7,25 @@ import torch
 os.environ['DATASET'] = 'kitti'
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-import cfgs.config as cfg
+from cfgs.config_v2 import load_cfg_yamls
 import utils.network as net_utils
-import utils.yolo as yolo_utils
+import utils.yolo_v2 as yolo_utils
 from darknet import Darknet19
-from plot_util import *
-from misc.flow_util import *
+from flow.plot_util import *
+from flow.flow_util import *
 from utils.timer import Timer
 from torch.autograd import Variable
 
 
+dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
+exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
+
+cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
+
+
 def preprocess(filename):
     image = cv2.imread(filename)
-    im_data = np.expand_dims(yolo_utils.preprocess_test((image, None, cfg.inp_size))[0], 0)
+    im_data = np.expand_dims(yolo_utils.preprocess_test((image, None, cfg['inp_size']))[0], 0)
     return image, im_data
 
 
@@ -28,7 +34,7 @@ def detection_objects(bboxes, scores, cls_inds):
     for i in range(len(bboxes)):
         box = bboxes[i]
         score = scores[i]
-        label = cfg.label_names[cls_inds[i]]
+        label = cfg['label_names'][cls_inds[i]]
         objects.append((box, score, label))
     return objects
 
@@ -51,30 +57,30 @@ def save_as_kitti_format(frame_id, det_obj, kitti_filename, src_label='voc'):
             file.write(line_str)
 
 
-def detect_by_flow(frame_index,  conv5_feat, current_frame, image_path, key_frame_path):
+def detect_by_flow(frame_index, conv5_feat, current_frame, image_path, key_frame_path, output_dir):
     t = time.time()
-    flow = spynet_flow(image_path, key_frame_path)
-    # flow = dis_flow(image_path, key_frame_path)
+    # flow = spynet_flow(image_path, key_frame_path)
+    flow = dis_flow(image_path, key_frame_path)
     # print('flow sum =', sum(flow.ravel()))
     # print('flow', time.time() - t)
 
     t = time.time()
     flow_rgb = draw_hsv(flow)
-    cv2.imwrite('output/flow/flow_{:04d}.jpg'.format(frame_index), flow_rgb)
+    cv2.imwrite(output_dir + '/flow/flow_{:04d}.jpg'.format(frame_index), flow_rgb)
     # print('flow_rgb', time.time() - t)
 
     t = time.time()
-    feat_size = cfg.inp_size[1] // 32, cfg.inp_size[0] // 32
+    feat_size = cfg['inp_size'][1] // 32, cfg['inp_size'][0] // 32
     flow_feat = get_flow_for_filter(flow, feat_size)
     flow_feat_hsv = draw_hsv(flow_feat, ratio=50)
-    cv2.imwrite('output/flow_feat/flow_{:04d}.jpg'.format(frame_index), flow_feat_hsv)
+    cv2.imwrite(output_dir + '/flow_feat/flow_{:04d}.jpg'.format(frame_index), flow_feat_hsv)
     # print('flow_feat sum =', sum(flow_feat.ravel()))
     # print('flow_feat_hsv', time.time() - t)
 
     t = time.time()
     img_warp = warp_flow(current_frame, flow)
     # cv2.imshow('img_warp', img_warp)
-    cv2.imwrite('output/warp/warp_{:04d}.jpg'.format(frame_index), img_warp)
+    cv2.imwrite(output_dir + '/warp/warp_{:04d}.jpg'.format(frame_index), img_warp)
     # print('warp_flow', time.time() - t)
 
     t = time.time()
@@ -92,20 +98,23 @@ def detect_by_flow(frame_index,  conv5_feat, current_frame, image_path, key_fram
 
 
 def main():
+    root_dir = '/home/cory/project/yolo2-pytorch'
+    output_dir = root_dir + '/output'
+    output_template_dir = root_dir + '/output_template'
+    kitti_filename = root_dir + '/yolo_flow_kitti_det.txt'
 
-    shutil.rmtree('output', ignore_errors=True)
-    shutil.copytree('output_template', 'output')
+    shutil.rmtree(output_dir, ignore_errors=True)
+    shutil.copytree(output_template_dir, output_dir)
 
     # trained_model = cfg.trained_model
-    # trained_model = '/home/cory/yolo2-pytorch/models/yolo-voc.weights.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
-    trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_baseline/kitti_baseline_164.h5'
+    # trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_baseline_v3/kitti_baseline_v3_80.h5'
+    trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft/kitti_new_2_flow_center_ft_50.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_ft/kitti_new_2_flow_ft_2.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/voc0712_obj_scale/voc0712_obj_scale_1.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_40.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_det_new_2/kitti_det_new_2_10.h5'
     thresh = 0.5
-    use_kitti = True
 
     # car = 1 5
     # pedestrian = 13 17
@@ -117,18 +126,19 @@ def main():
     print('load model successfully')
     # print(net)
 
-    # img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
-    img_files = open('/home/cory/yolo2-pytorch/train_data/kitti/0001_images.txt')
+    img_files = open('/home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_images.txt')
+    # img_files = open('/home/cory/project/yolo2-pytorch/train_data/kitti/0001_images.txt')
     # img_files = open('/home/cory/yolo2-pytorch/train_data/ImageNetVID_test.txt')
     # img_files = open('/home/cory/yolo2-pytorch/train_data/vid04_images.txt')
     image_abs_paths = img_files.readlines()
     image_abs_paths = [f.strip() for f in image_abs_paths]
+    image_abs_paths = image_abs_paths[500:]
 
     key_frame_path = ''
     detection_period = 1
     use_flow = False
+    layer_of_flow = 'conv4'
 
-    kitti_filename = 'yolo_flow_kitti_det.txt'
     try:
         os.remove(kitti_filename)
     except OSError:
@@ -145,7 +155,6 @@ def main():
         t1 = time.time()
         print('t1', t1 - t0)
 
-        layer_of_flow = 'conv4'
         # key frame
         if use_flow and i % detection_period == 0:
             key_frame_path = image_path
@@ -154,11 +163,11 @@ def main():
             feature = feature.data.cpu().numpy()
             feature_map_all = plot_feature_map(feature, resize_ratio=1)
             # cv2.imshow('feature_map', feature_map_all)
-            cv2.imwrite('output/feature_map/{:04d}.jpg'.format(i), feature_map_all * 255)
+            cv2.imwrite(output_dir + '/feature_map/{:04d}.jpg'.format(i), feature_map_all * 255)
 
         t_det.tic()
         if use_flow:
-            conv5_shifted_gpu = detect_by_flow(i, feature, image, image_path, key_frame_path)
+            conv5_shifted_gpu = detect_by_flow(i, feature, image, image_path, key_frame_path, output_dir)
             bbox_pred, iou_pred, prob_pred = net.feed_feature(Variable(conv5_shifted_gpu), layer=layer_of_flow)
 
         else:
@@ -188,7 +197,7 @@ def main():
         im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
 
         cv2.imshow('detection', im2show)
-        cv2.imwrite('output/detection/{:04d}.jpg'.format(i), im2show)
+        cv2.imwrite(output_dir + '/detection/{:04d}.jpg'.format(i), im2show)
 
         total_time = t_total.toc()
         format_str = 'frame: %d, (detection: %.1f fps, %.1f ms) (total: %.1f fps, %.1f ms)'

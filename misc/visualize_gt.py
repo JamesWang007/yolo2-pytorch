@@ -61,8 +61,8 @@ def vis_list_file():
     # image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
     # label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
 
-    image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_joint_dis_flow_images.txt'
-    label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_joint_dis_flow_labels.txt'
+    image_path = '/home/cory/project/yolo2-pytorch/flow/warp_w01_imgs.txt'
+    label_path = '/home/cory/project/yolo2-pytorch/flow/warp_center_labels.txt'
 
     image_file = open(image_path)
     label_file = open(label_path)

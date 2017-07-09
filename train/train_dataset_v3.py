@@ -27,12 +27,12 @@ def read_ckp(cfg):
 def train_main():
     choice = 1
     if choice == 0:
-        dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-        exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
+        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_voc.yaml'
+        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
         gpu_id = 0
-    elif choice == 1:
-        dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_kitti.yaml'
-        exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
+    else:
+        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
+        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_new_2_flow_center_ft_flownet2_joint.yaml'
         gpu_id = 1
 
     cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
@@ -143,7 +143,6 @@ def train_main():
 
     except KeyboardInterrupt:
         exit(1)
-
 
 if __name__ == '__main__':
     train_main()

@@ -1,15 +1,15 @@
 %YAML 1.2
 ---
-exp_name: kitti_baseline_v3
+exp_name: kitti_baseline_v3_yf
 dataset_name: kitti
-pretrained_model: /home/cory/yolo2-pytorch/data/darknet19.weights.npz
-train_output_dir: /home/cory/yolo2-pytorch/models/training/kitti_baseline_v3
+pretrained_model: /home/cory/project/yolo2-pytorch/data/darknet19.weights.npz
+train_output_dir: /home/cory/project/yolo2-pytorch/models/training/kitti_baseline_v3_yf
 network_size_rand_period: 10
 inp_size: [1216, 352]
 out_size: [38, 11] # inp_size / 32
 inp_size_candidates: [[1024, 320], [1024, 384], [1120, 354], [1120, 384],
                       [1184, 320], [1216, 320], [1216, 352], [1248, 352]]
-optimizer: SGD  # 'SGD, Adam'
+optimizer: YF  # 'SGD, Adam, YF'
 opt_param: all  # 'all, conv345'
 
 start_step: 0

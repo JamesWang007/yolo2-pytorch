@@ -1,7 +1,7 @@
 %YAML 1.2
 ---
 # trained model
-h5_fname: /home/cory/yolo2-pytorch/models/yolo-voc.weights.h5
+h5_fname: /home/cory/project/yolo2-pytorch/models/yolo-voc.weights.h5
 
 # VOC
 label_names: [aeroplane, bicycle, bird, boat,
