@@ -27,16 +27,16 @@ class DataLoaderX(data.DataLoader):
 
 def test_detection_dataset():
     from cfgs.config_v2 import add_cfg
-    dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline.yaml'
+    dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_detrac.yaml'
+    exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/detrac/detrac_baseline.yaml'
     cfg = dict()
     add_cfg(cfg, dataset_yaml)
     add_cfg(cfg, exp_yaml)
     dataset = DetectionDataset(cfg)
     num_workers = 4
     batch_size = 16
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                             shuffle=True, num_workers=num_workers)
+    dataloader = DataLoaderX(dataset, batch_size=batch_size,
+                             shuffle=True, num_workers=num_workers)
 
     t0 = time.time()
     for i, data in enumerate(dataloader):

@@ -27,12 +27,12 @@ def read_ckp(cfg):
 def train_main():
     choice = 1
     if choice == 0:
-        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_voc.yaml'
-        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline_v3_rand.yaml'
-        gpu_id = 0
+        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_detrac.yaml'
+        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/detrac/detrac_flow_center_w01.yaml'
+        gpu_id = 1
     else:
         dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
-        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_new_2_flow_center_ft_flownet2_joint.yaml'
+        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3_fl.yaml'
         gpu_id = 1
 
     cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
@@ -40,6 +40,10 @@ def train_main():
     # runtime setting
     os.environ['CUDA_VISIBLE_DEVICES'] = str(gpu_id)
     os.makedirs(cfg['train_output_dir'], exist_ok=True)
+
+    enable_bbox_loss = True
+    enable_iou_loss = True
+    enable_class_loss = True
 
     # data loader
     batch_size = cfg['train_batch_size']
@@ -100,7 +104,15 @@ def train_main():
 
                 # backward
                 optimizer.zero_grad()
-                net_loss = net_bbox_loss + net_iou_loss + net_class_loss
+
+                net_loss = 0
+                if enable_bbox_loss:
+                    net_loss += net_bbox_loss
+                if enable_iou_loss:
+                    net_loss += net_iou_loss
+                if enable_class_loss:
+                    net_loss += net_class_loss
+
                 net_loss.backward()
                 optimizer.step()
                 barrier.add(4)
@@ -143,6 +155,7 @@ def train_main():
 
     except KeyboardInterrupt:
         exit(1)
+
 
 if __name__ == '__main__':
     train_main()

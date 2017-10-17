@@ -93,3 +93,34 @@ class Darknet19(nn.Module):
         class_pred = F.softmax(class_pred_raw.view(-1, self.cfg['num_classes'])).view_as(class_pred_raw)
 
         return bbox_pred, iou_pred, class_pred
+
+    def get_feature_map(self, im_data, layer='conv5'):
+        conv1s = self.conv1s(im_data)
+        if layer == 'conv1s':
+            return conv1s
+
+        conv2 = self.conv2(conv1s)
+        if layer == 'conv2':
+            return conv2
+
+        conv3 = self.conv3(conv2)
+        if layer == 'conv3':
+            return conv3
+
+        conv1s_reorg = self.reorg(conv1s)
+        if layer == 'conv1s_reorg':
+            return conv1s_reorg
+
+        cat_1_3 = torch.cat([conv1s_reorg, conv3], 1)
+        if layer == 'cat_1_3':
+            return cat_1_3
+
+        conv4 = self.conv4(cat_1_3)
+        if layer == 'conv4':
+            return conv4
+
+        conv5 = self.conv5(conv4)  # batch_size, out_channels, h, w
+        if layer == 'conv5':
+            return conv5
+
+        return None

@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-exp1 = 'kitti_baseline_v3_yf'
-exp2 = 'kitti_baseline_v3'
+exp1 = 'detrac_baseline'
+exp2 = 'detrac_baseline'
 log_file1 = '/home/cory/project/yolo2-pytorch/models/training/' + exp1 + '/train.log'  # red
 log_file2 = '/home/cory/project/yolo2-pytorch/models/training/' + exp2 + '/train.log'  # blue
 log1 = np.genfromtxt(log_file1, delimiter=', ')

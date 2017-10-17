@@ -1,8 +1,8 @@
 import os
 
 all_labels = 'VOC/voc0712_labels.txt'
-train_images = 'VOC/train_images.txt'
-train_labels = 'VOC/train_labels.txt'
+train_images = 'VOC/detrac_train_images.txt'
+train_labels = 'VOC/detrac_train_labels.txt'
 
 
 prefix = '/home/cory/VOC/VOCdevkit/VOC2007/labels/'

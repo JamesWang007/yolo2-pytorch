@@ -9,6 +9,8 @@ def parse_label_file(label_file_path, label_map):
     has_label = False
     with open(label_file_path) as label_file:
         for line in label_file.readlines():
+            if line == '\n':
+                continue
             values = line.strip().split(' ')
             label = values[0]
 

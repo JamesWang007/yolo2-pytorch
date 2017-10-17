@@ -81,8 +81,8 @@ class DetectionDataset(data.Dataset):
 
 def test_detection_dataset():
     from cfgs.config_v2 import add_cfg
-    dataset_yaml = '/home/cory/yolo2-pytorch/cfgs/config_voc.yaml'
-    exp_yaml = '/home/cory/yolo2-pytorch/cfgs/exps/voc0712/voc0712_baseline.yaml'
+    dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
+    exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
     cfg = dict()
     add_cfg(cfg, dataset_yaml)
     add_cfg(cfg, exp_yaml)

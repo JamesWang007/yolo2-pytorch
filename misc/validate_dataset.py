@@ -8,7 +8,7 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 from cfgs.config_v2 import add_cfg
 import utils.network as net_utils
-from darknet_v2 import Darknet19
+from darknet_v3 import Darknet19
 from datasets.ImageFileDataset_v2 import ImageFileDataset
 from utils.timer import Timer
 from train.train_util_v2 import *

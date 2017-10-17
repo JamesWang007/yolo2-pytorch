@@ -1,9 +1,9 @@
 %YAML 1.2
 ---
-exp_name: kitti_new_2_flow_center_ft
+exp_name: kitti_new_2_flow_center_ft_iou_merge
 dataset_name: kitti
 pretrained_model: /home/cory/project/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5
-train_output_dir: /home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft
+train_output_dir: /home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft_iou_merge
 network_size_rand_period: 10
 inp_size: [1216, 352]
 out_size: [38, 11] # inp_size / 32
@@ -30,8 +30,10 @@ coord_scale: 1.
 iou_thresh: 0.6
 
 # dataset
-train_images: /home/cory/project/yolo2-pytorch/flow/w01_images.txt
-train_labels: /home/cory/project/yolo2-pytorch/flow/w01_center_labels.txt
+train_images: /home/cory/project/yolo2-pytorch/flow/w01_images_merge.txt
+train_labels: /home/cory/project/yolo2-pytorch/flow/w01_center_labels_merge.txt
+# train_images: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_images.txt
+# train_labels: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt
 val_images: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_images.txt
 val_labels: /home/cory/project/yolo2-pytorch/train_data/kitti/kitti_val_labels.txt
 batch_size: 1

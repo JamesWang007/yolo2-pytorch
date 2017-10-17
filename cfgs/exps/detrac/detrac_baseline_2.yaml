@@ -1,0 +1,40 @@
+%YAML 1.2
+---
+exp_name: detrac_baseline_2
+dataset_name: detrac
+pretrained_model: /home/cory/project/yolo2-pytorch/data/darknet19.weights.npz
+train_output_dir: /home/cory/project/yolo2-pytorch/models/training/detrac_baseline_2
+network_size_rand_period: 10
+inp_size: [960, 512]
+out_size: [30, 16] # inp_size / 32
+inp_size_candidates: [[960, 512]]
+optimizer: SGD  # 'SGD, Adam'
+opt_param: all  # 'all, conv345'
+
+start_step: 0
+lr_epoch: [0, 40, 80]
+lr_val: [!!float 1e-3, !!float 1e-4, !!float 1e-5]
+max_epoch: 200
+
+# SGD only
+weight_decay: 0.0005
+momentum: 0.9
+
+# for training yolo2
+object_scale: 5.
+noobject_scale: 1.
+class_scale: 1.
+coord_scale: 1.
+iou_thresh: 0.6
+
+# dataset
+train_images: /home/cory/project/yolo2-pytorch/train_data/detrac/detrac_train_images_2.txt
+train_labels: /home/cory/project/yolo2-pytorch/train_data/detrac/detrac_train_labels_2.txt
+val_images: /home/cory/project/yolo2-pytorch/train_data/detrac/detrac_val_images_2.txt
+val_labels: /home/cory/project/yolo2-pytorch/train_data/detrac/detrac_val_labels_2.txt
+batch_size: 1
+train_batch_size: 16
+val_batch_size: 8
+
+# log & display
+disp_interval: 10

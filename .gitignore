@@ -97,5 +97,8 @@ ENV/
 .idea
 
 *.o
+*.pkl
 models/*
 data/*
+train_data/*
+flow_/*

@@ -1,34 +1,44 @@
 import cv2
 
 
+def proc_label(img, values):
+    if len(values) <= 1:
+        return
+    label = values[0]
+    official_format = False
+    label = label.replace('DontCare', '')
+    if official_format:
+        xmin = int(float(values[4]))
+        ymin = int(float(values[5]))
+        xmax = int(float(values[6]))
+        ymax = int(float(values[7]))
+    else:
+        xmin = int(float(values[1]))
+        ymin = int(float(values[2]))
+        xmax = int(float(values[3]))
+        ymax = int(float(values[4]))
+
+    cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1)
+    cv2.putText(img, label, (xmin, ymax), cv2.FORMATTER_FMT_CSV, 1, (0, 255, 0), 1, cv2.LINE_AA)
+    print(values)
+
+
 def plot_vis(image_path, label_path):
     img = cv2.imread(image_path)
     print(img.shape)
 
-    label_file = open(label_path)
-    for label in label_file.readlines():
-        values = label.strip().split(' ')
-        label = values[0]
-        official_format = False
-        label = label.replace('DontCare', '')
-        if official_format:
-            xmin = int(float(values[4]))
-            ymin = int(float(values[5]))
-            xmax = int(float(values[6]))
-            ymax = int(float(values[7]))
-        else:
-            xmin = int(float(values[1]))
-            ymin = int(float(values[2]))
-            xmax = int(float(values[3]))
-            ymax = int(float(values[4]))
+    if isinstance(label_path, str):
+        label_file = open(label_path)
+        vv = [f.strip().split(' ') for f in label_file.readlines()]
+    else:
+        vv = label_path
 
-        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 1)
-        cv2.putText(img, label, (xmin, ymax), cv2.FORMATTER_FMT_CSV, 1, (0, 255, 0), 1, cv2.LINE_AA)
-        print(values)
+    for values in vv:
+        proc_label(img, values)
 
     cv2.imshow('img', img)
     cv2.imwrite('vis.jpg', img)
-    key = cv2.waitKey()
+    key = cv2.waitKey(100)
     print(key)
     if key == ord('q'):
         return -1
@@ -58,17 +68,19 @@ def vis_list_file():
     # label_path = '/home/cory/yolo2-pytorch/train_data/voc/voc_train_labels.txt'
     # image_path = '/media/cory/BackUp/ImageNet/vid_all_images.txt'
     # label_path = '/media/cory/BackUp/ImageNet/vid_all_labels.txt'
-    # image_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
-    # label_path = '/home/cory/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
+    image_path = '/home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_images.txt'
+    label_path = '/home/cory/project/yolo2-pytorch/train_data/kitti/kitti_train_labels.txt'
 
-    image_path = '/home/cory/project/yolo2-pytorch/flow/warp_w01_imgs.txt'
-    label_path = '/home/cory/project/yolo2-pytorch/flow/warp_center_labels.txt'
+    # image_path = '/home/cory/project/yolo2-pytorch/train_data/detrac/detrac_train_images.txt'
+    # label_path = '/home/cory/project/yolo2-pytorch/train_data/detrac/detrac_train_labels.txt'
 
     image_file = open(image_path)
     label_file = open(label_path)
     images = [p.strip() for p in image_file.readlines()]
     labels = [p.strip() for p in label_file.readlines()]
     for i in range(len(images)):
+        if i < 500:
+            continue
         print(images[i], labels[i])
         r = plot_vis(images[i], labels[i])
         if r == -1:

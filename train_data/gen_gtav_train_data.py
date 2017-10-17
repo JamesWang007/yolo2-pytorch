@@ -73,11 +73,11 @@ def fid_to_fullpath(fid):
 
 # open terminal and cd to VOC path
 # run these commands to gen file list
-# cat 2007_train.txt 2007_val.txt 2012_*.txt > train_images.txt
+# cat 2007_train.txt 2007_val.txt 2012_*.txt > detrac_train_images.txt
 # realpath VOCdevkit/*/labels/*.txt > all_labels.txt
 #
 # test_images.txt & test_labels should both contain 4952 lines
-# train_images.txt & train_images.txt should both contain 16551 lines
+# detrac_train_images.txt & detrac_train_images.txt should both contain 16551 lines
 
 
 def gen_voc_train_data():

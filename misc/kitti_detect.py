@@ -12,7 +12,7 @@ from flow.flow_util import *
 from utils.timer import Timer
 
 dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
-exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3_yf.yaml'
+exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
 gpu_id = 0
 
 cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
@@ -63,8 +63,8 @@ def main():
     vis_enable = False
     thresh = 0.5
 
-    trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft_flownet2_joint/' \
-                    'kitti_new_2_flow_center_ft_flownet2_joint_30.h5'
+    trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_new_2_flow_center_ft_half/' \
+                    'kitti_new_2_flow_center_ft_half_5.h5'
 
     shutil.rmtree(output_dir, ignore_errors=True)
     shutil.rmtree(kitti_output_dir, ignore_errors=True)
