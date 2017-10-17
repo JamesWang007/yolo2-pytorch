@@ -14,12 +14,12 @@ YOLO9000: Better, Faster, Stronger by Joseph Redmon and Ali Farhadi.
 </p>
 
 ### System Environment
-Ubuntu 16.04
-CUDA 8.0 / cuDNN 5.1
-Python 3.5
-Numpy 1.13.3
-PyTorch 0.1.12
-OpenCV 3.2
++ Ubuntu 16.04
++ CUDA 8.0 / cuDNN 5.1
++ Python 3.5
++ Numpy 1.13.3
++ PyTorch 0.1.12
++ OpenCV 3.2
 
 ### Installation and demo
 1. Clone this repository
