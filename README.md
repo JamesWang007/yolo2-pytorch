@@ -5,8 +5,8 @@ This project is forked from (https://github.com/longcw/yolo2-pytorch), but not c
 
 Currently, I train this model for [KITTI Dataset](http://www.cvlibs.net/datasets/kitti/) to demo. It predicts car, pedestrian and cyclist. If you want a general detecotr, please refer to [this](https://github.com/longcw/yolo2-pytorch).
 
-You can also use [original YOLOv2](https://github.com/pjreddie/darknet) COCO model on KITTI, Here is a demo video:
-https://www.youtube.com/watch?v=mfB1C4QQJr4
+You can also use [original YOLOv2](https://github.com/pjreddie/darknet) COCO model on KITTI, Here is a [demo video](
+https://www.youtube.com/watch?v=mfB1C4QQJr4)
 
 For details about YOLO and YOLOv2 please refer to their [project page](https://pjreddie.com/darknet/yolo/) 
 and the [paper](https://arxiv.org/abs/1612.08242):
