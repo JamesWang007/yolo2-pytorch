@@ -11,10 +11,9 @@ base_dir = './'
 
 def init_network():
     dataset_yaml = os.path.join(base_dir, 'cfgs/config_kitti_demo.yaml')
-    # exp_yaml = os.path.join(base_dir, 'cfgs/exps/kitti/kitti_baseline_v3.yaml')
     cfg = load_cfg_yamls([dataset_yaml])
 
-    model = os.path.join(base_dir, 'models/training/kitti_new_2/kitti_new_2_100.h5')
+    model = os.path.join(base_dir, 'models/training/kitti_baseline_v3/kitti_baseline_v3_100.h5')
     net = Darknet19(cfg)
     net_utils.load_net(model, net)
     net.eval()
@@ -51,15 +50,18 @@ def run():
     image_paths = load_image_paths(os.path.join('./demo/', 'demo_images_list.txt'))
 
     thresh = 0.6
+    imshow = True
     for i, image_path in enumerate(image_paths):
         bboxes, cls_inds, image, scores = detect_image(cfg, image_path, net, thresh)
 
         im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
 
-        cv2.imshow('detection', im2show)
-        key = cv2.waitKey(100)
-        if key == ord('q'):
-            break
+        cv2.imwrite('output/detection_{:04d}.jpg'.format(i), im2show)
+        if imshow:
+            cv2.imshow('detection', im2show)
+            key = cv2.waitKey(100)
+            if key == ord('q'):
+                break
 
 
 if __name__ == '__main__':

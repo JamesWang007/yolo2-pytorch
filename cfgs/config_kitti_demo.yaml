@@ -1,7 +1,6 @@
 %YAML 1.2
 ---
 # trained model
-h5_fname: data/darknet19.weights.npz
 inp_size: [1216, 352]
 out_size: [38, 11] # inp_size / 32
 

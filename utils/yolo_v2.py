@@ -208,6 +208,6 @@ def draw_detection(im, bboxes, scores, cls_inds, cfg):
                       colors[cls_indx], 2)
         mess = '%s: %.3f' % (labels[cls_indx], scores[i])
         cv2.putText(imgcv, mess, (box[0], box[1] - 12),
-                    0, 1e-3 * h, colors[cls_indx], 2)
+                    1, 1, colors[cls_indx], 2)
 
     return imgcv
