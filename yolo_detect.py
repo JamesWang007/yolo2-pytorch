@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import os
+import time
 from darknet_v3 import Darknet19
 from cfgs.config_v2 import load_cfg_yamls
 import utils.network as net_utils
@@ -51,17 +52,25 @@ def run():
 
     thresh = 0.6
     imshow = True
+    time_rec = list()
     for i, image_path in enumerate(image_paths):
+        begin_time = time.time()
         bboxes, cls_inds, image, scores = detect_image(cfg, image_path, net, thresh)
-
+        end_time = time.time()
+        time_rec.append(end_time - begin_time)
         im2show = yolo_utils.draw_detection(image, bboxes, scores, cls_inds, cfg)
 
         cv2.imwrite('output/detection_{:04d}.jpg'.format(i), im2show)
         if imshow:
             cv2.imshow('detection', im2show)
-            key = cv2.waitKey(100)
+            key = cv2.waitKey(30)
             if key == ord('q'):
                 break
+
+    avg = sum(time_rec) / len(time_rec)
+    print('processed {:d} images in {:.3f} seconds'.format(len(time_rec), sum(time_rec)))
+    print('{:.3f} sec/image'.format(avg))
+    print('{:.2f} fps'.format(1/avg))
 
 
 if __name__ == '__main__':
