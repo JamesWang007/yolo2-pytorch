@@ -101,5 +101,5 @@ ENV/
 models/*
 data/*
 train_data/*
-flow_/*
-output/*
+output/
+flow/output/
