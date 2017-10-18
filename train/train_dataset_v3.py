@@ -25,10 +25,10 @@ def read_ckp(cfg):
 
 
 def train_main():
-    choice = 1
+    choice = 0
     if choice == 0:
-        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_detrac.yaml'
-        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/detrac/detrac_flow_center_w01.yaml'
+        dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_crowdai.yaml'
+        exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/crowdai/crowdai_baseline.yaml'
         gpu_id = 1
     else:
         dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'

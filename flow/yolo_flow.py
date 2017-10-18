@@ -19,8 +19,8 @@ from torch.autograd import Variable
 
 # dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_kitti.yaml'
 # exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/kitti/kitti_baseline_v3.yaml'
-dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_detrac.yaml'
-exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/detrac/detrac_baseline.yaml'
+dataset_yaml = '/home/cory/project/yolo2-pytorch/cfgs/config_crowdai.yaml'
+exp_yaml = '/home/cory/project/yolo2-pytorch/cfgs/exps/crowdai/crowdai_baseline.yaml'
 
 cfg = load_cfg_yamls([dataset_yaml, exp_yaml])
 
@@ -120,7 +120,7 @@ def main():
     # trained_model = cfg.trained_model
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2/kitti_new_2_100.h5'
     # trained_model = '/home/cory/project/yolo2-pytorch/models/training/kitti_baseline_v3/kitti_baseline_v3_80.h5'
-    trained_model = '/home/cory/project/yolo2-pytorch/models/training/detrac_baseline_2/detrac_baseline_2_20.h5'
+    trained_model = '/home/cory/project/yolo2-pytorch/models/training/crowdai_baseline/crowdai_baseline_6.h5'
     # trained_model = '/home/cory/yolo2-pytorch/models/training/kitti_new_2_flow_ft/kitti_new_2_flow_ft_2.h5'
     thresh = 0.5
 
@@ -130,7 +130,7 @@ def main():
 
     # print(net)
 
-    img_files = open('/home/cory/project/yolo2-pytorch/train_data/detrac/detrac_val_images.txt')
+    img_files = open('/home/cory/project/yolo2-pytorch/train_data/crowdai/crowdai_val_images.txt')
     # img_files = open('/home/cory/project/yolo2-pytorch/train_data/kitti/0001_images.txt')
     # img_files = open('/home/cory/yolo2-pytorch/train_data/ImageNetVID_test.txt')
     # img_files = open('/home/cory/yolo2-pytorch/train_data/vid04_images.txt')
